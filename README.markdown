@@ -1,2 +1,2 @@
-Encrypted Voice Chat Client
-===========================
+Qt Encrypted Voice Chat Client
+==============================
