@@ -1,10 +1,14 @@
 #ifndef AUDIOOUTPUT_H
 #define AUDIOOUTPUT_H
 
-class AudioOutput
+#include "audio.h"
+
+class AudioOutput : public Audio
 {
 public:
-    AudioOutput();
+    AudioOutput(QAudioFormat format, QAudioDeviceInfo device, QByteArray * byteArray);
+
+    void run();
 };
 
 #endif // AUDIOOUTPUT_H

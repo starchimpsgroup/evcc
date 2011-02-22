@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QAudioFormat>
 #include "audioinput.h"
+#include "audiooutput.h"
 #include <QMap>
 
 namespace Ui {
@@ -19,6 +20,11 @@ public:
     ~MainWindow();
 
     void stopAudioInput();
+    void startAudioInput();
+
+    void stopAudioOutput();
+    void startAudioOutput();
+
     QAudioDeviceInfo audioDeviceByName( QString name, QAudio::Mode mode );
 
 private:
@@ -26,8 +32,10 @@ private:
 
     QAudioFormat _format;
 
-    QByteArray * _audioInputByteArray;
-    AudioInput * _audioInput;
+    QByteArray  * _audioInputByteArray;
+    QByteArray  * _audioOutputByteArray;
+    AudioInput  * _audioInput;
+    AudioOutput * _audioOutput;
 
     QMap<Audio *, QByteArray *> _audioMap;
 
