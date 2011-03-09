@@ -5,27 +5,41 @@ AudioOutput::AudioOutput(QAudioFormat format, QAudioDeviceInfo device, QByteArra
 {
 }
 
-void AudioOutput::run()
+AudioOutput::~AudioOutput()
+{
+    stop();
+}
+
+void AudioOutput::start()
 {
     if (!_device.isFormatSupported(_format)) {
         qDebug("default format not supported try to use nearest");
         _format = _device.nearestFormat(_format);
     }
 
-    QDataStream * stream = new QDataStream(_byteArray, QIODevice::ReadWrite | QIODevice::Unbuffered);
+    _byteArray->clear();
+    _stream = new QDataStream(_byteArray, QIODevice::ReadWrite /*| QIODevice::Unbuffered*/);
 
-    _audioOutput->start(stream->device());
+    _ioDevice = _stream->device();
 
-    while(!_exitThread)
-    {
-    }
+     _ioDevice->open(QIODevice::ReadWrite);
+    _audioOutput->start(_ioDevice);
+}
 
+void AudioOutput::stop()
+{
     _audioOutput->stop();
+}
 
-    delete _audioOutput;
-    delete stream;
+void AudioOutput::finishedAudio(QAudio::State state)
+{
+    if(state == QAudio::StoppedState)
+    {qDebug("finishedAudio");
+        QObject * sender = QObject::sender();
+        sender->disconnect();
 
-    return;
+        delete _stream;
 
-    exec();
+        emit finished();
+    }
 }

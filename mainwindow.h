@@ -37,12 +37,12 @@ private:
     AudioInput  * _audioInput;
     AudioOutput * _audioOutput;
 
-    QMap<Audio *, QByteArray *> _audioMap;
+    QMap<QObject *, QByteArray *> _audioMap;
 
 private slots:
     void on_call_clicked();
     void on_endCall_clicked();
-    void finishedThread();
+    void finishedAudio();
 
 };
 

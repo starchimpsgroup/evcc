@@ -7,8 +7,17 @@ class AudioOutput : public Audio
 {
 public:
     AudioOutput(QAudioFormat format, QAudioDeviceInfo device, QByteArray * byteArray);
+    ~AudioOutput();
 
-    void run();
+    void start();
+    void stop();
+
+private:
+    QDataStream * _stream;
+    QIODevice   * _ioDevice;
+
+protected slots:
+    void finishedAudio( QAudio::State state );
 };
 
 #endif // AUDIOOUTPUT_H
