@@ -5,6 +5,7 @@
 #include <QAudioFormat>
 #include "audioinput.h"
 #include "audiooutput.h"
+#include "spectrum.h"
 #include <QMap>
 
 namespace Ui {
@@ -38,6 +39,8 @@ private:
     AudioOutput * _audioOutput;
 
     QMap<QObject *, QByteArray *> _audioMap;
+
+    Spectrum   * _spectrum;
 
 private slots:
     void on_call_clicked();

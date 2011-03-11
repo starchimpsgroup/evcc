@@ -14,12 +14,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     audioinput.cpp \
     audiooutput.cpp \
-    audio.cpp
+    audio.cpp \
+    spectrum.cpp
 
 HEADERS  += mainwindow.h \
     audioinput.h \
     audiooutput.h \
-    audio.h
+    audio.h \
+    spectrum.h
 
 FORMS    += mainwindow.ui
 

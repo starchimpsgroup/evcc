@@ -2,6 +2,21 @@
 #define AUDIOOUTPUT_H
 
 #include "audio.h"
+#include "QThread"
+
+class AudioOutputDataThread : public QThread
+{
+public:
+    AudioOutputDataThread(QIODevice * device, QByteArray * byteArray);
+
+    void run();
+    void stop(){ _exitThread = true; }
+
+private:
+    bool          _exitThread;
+    QIODevice    * _device;
+    QByteArray   * _byteArray;
+};
 
 class AudioOutput : public Audio
 {
@@ -13,6 +28,7 @@ public:
     void stop();
 
 private:
+    AudioOutputDataThread * _audioThread;
     QDataStream * _stream;
     QIODevice   * _ioDevice;
 

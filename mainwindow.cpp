@@ -18,25 +18,9 @@ MainWindow::MainWindow(QWidget *parent) :
     _format.setByteOrder(QAudioFormat::LittleEndian);
     _format.setSampleType(QAudioFormat::SignedInt);
 
-    // ##################
-/*
-    QList<QAudioDeviceInfo> i = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
-    QList<QAudioDeviceInfo> o = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
+    _spectrum = new Spectrum(_audioInputByteArray, this);
 
-    QAudioDeviceInfo outputDevice = i.at(0);//QAudioDeviceInfo::defaultOutputDevice();
-    QAudioDeviceInfo inputDevice  = i.at(1);//QAudioDeviceInfo::defaultInputDevice();
-
-    QAudioInput    * _audioInput;
-    QAudioOutput   * _audioOutput;
-
-    _audioOutput = new QAudioOutput(outputDevice, _format);
-    _audioInput  = new QAudioInput(inputDevice, _format);
-
-    QIODevice * ioDevice;
-    ioDevice = _audioInput->start();
-    _audioOutput->start(ioDevice);
-*/
-    // ##################
+    ui->gridLayout->addWidget(_spectrum,2,0);
 }
 
 MainWindow::~MainWindow()
@@ -101,9 +85,9 @@ void MainWindow::stopAudioOutput()
 
 void MainWindow::startAudioOutput()
 {
-    _audioOutputByteArray = new QByteArray();
+    //_audioOutputByteArray = new QByteArray();
 
-    //_audioOutputByteArray = _audioInputByteArray;
+    _audioOutputByteArray = _audioInputByteArray;
 
     _audioOutput = new AudioOutput(_format, audioDeviceByName("pulse", QAudio::AudioInput), _audioOutputByteArray);
     QObject::connect(_audioOutput, SIGNAL( finished() ), this, SLOT( finishedAudio() ) );

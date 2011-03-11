@@ -1,4 +1,5 @@
 #include "audioinput.h"
+#include "QMutex"
 
 AudioInput::AudioInput(QAudioFormat format, QAudioDeviceInfo device, QByteArray * byteArray) :
                  Audio(format, device, byteArray, QAudio::AudioInput)
@@ -17,32 +18,13 @@ void AudioInput::start()
         _format = _device.nearestFormat(_format);
     }
 
+    _audioInput->reset();
     _ioDevice = _audioInput->start();
 
     _audioThread = new AudioInputDataThread(_audioInput, _ioDevice, _byteArray);
     QObject::connect( _audioThread, SIGNAL( finished() ), this, SLOT( finishedThread() ) );
 
     _audioThread->start();
-
-    // ##################
-
-    /*QList<QAudioDeviceInfo> i = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
-    QList<QAudioDeviceInfo> o = QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
-
-    QAudioDeviceInfo outputDevice = _device;//QAudioDeviceInfo::defaultOutputDevice();
-    QAudioDeviceInfo inputDevice  = _device;//QAudioDeviceInfo::defaultInputDevice();
-
-    QAudioInput    * _audioInput;
-    QAudioOutput   * _audioOutput;
-
-    _audioOutput = new QAudioOutput(outputDevice, _format);
-    _audioInput  = new QAudioInput(inputDevice, _format);
-
-    //QIODevice * ioDevice;
-    _ioDevice = _audioInput->start();
-    _audioOutput->start(_ioDevice);*/
-
-    // ##################
 }
 
 void AudioInput::stop()
@@ -75,11 +57,16 @@ void AudioInputDataThread::run()
     {
         if( _audioInput->bytesReady() >= _audioInput->periodSize() )
         {
+            QMutex mutex;
+            mutex.lock();
             _byteArray->append( _device->read(_audioInput->bytesReady()) );
+            mutex.unlock();
+            //qDebug(qPrintable("BufferSize:    " + QString::number(_audioInput->bufferSize())));
+            //qDebug(qPrintable("ByteArraySize: " + QString::number(_byteArray->size())));
         }
     }
 
-    qDebug(qPrintable("Bytes read: " + QString::number(_byteArray->size()))); // ####
+    //qDebug(qPrintable("Bytes read: " + QString::number(_byteArray->size()))); // ####
 
     return;
 

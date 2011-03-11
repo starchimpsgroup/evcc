@@ -3,6 +3,7 @@
 
 #include <QAudioInput>
 #include <QAudioOutput>
+#include <QThread>
 
 class Audio : public QObject
 {
@@ -14,11 +15,11 @@ public:
     virtual void stop()  = 0;
 
 protected:
-    QAudioDeviceInfo _device;
-    QAudioFormat     _format;
-    QAudioInput    * _audioInput;
-    QAudioOutput   * _audioOutput;
-    QByteArray     * _byteArray;
+    QAudioDeviceInfo      _device;
+    QAudioFormat          _format;
+    QAudioInput         * _audioInput;
+    QAudioOutput        * _audioOutput;
+    QByteArray          * _byteArray;
 
 protected slots:
     virtual void finishedThread(){}

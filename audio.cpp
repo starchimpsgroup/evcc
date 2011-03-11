@@ -1,4 +1,5 @@
 #include "audio.h"
+#include "QMutex"
 
 Audio::Audio(QAudioFormat format, QAudioDeviceInfo device, QByteArray * byteArray, QAudio::Mode mode)
 {
