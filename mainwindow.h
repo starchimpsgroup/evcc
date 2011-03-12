@@ -33,19 +33,21 @@ private:
 
     QAudioFormat _format;
 
-    QByteArray  * _audioInputByteArray;
-    QByteArray  * _audioOutputByteArray;
+    //QByteArray  * _audioInputByteArray;
+    //QByteArray  * _audioOutputByteArray;
+    QVector<QByteArray> * _audioInputVector;
+    QVector<QByteArray> * _audioOutputVector;
     AudioInput  * _audioInput;
     AudioOutput * _audioOutput;
 
-    QMap<QObject *, QByteArray *> _audioMap;
+    //QMap<QObject *, QByteArray *> _audioMap;
 
     Spectrum   * _spectrum;
 
 private slots:
     void on_call_clicked();
     void on_endCall_clicked();
-    void finishedAudio();
+    //void finishedAudio();
 
 };
 

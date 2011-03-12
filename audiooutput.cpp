@@ -1,9 +1,10 @@
 #include "audiooutput.h"
-//#include "QMutex"
+#include "QMutex"
 
-AudioOutput::AudioOutput(QAudioFormat format, QAudioDeviceInfo device, QByteArray * byteArray) :
-                   Audio(format, device, byteArray, QAudio::AudioOutput)
+AudioOutput::AudioOutput(QAudioFormat format, QAudioDeviceInfo device, QVector<QByteArray> * byteVector) :
+                   Audio(format, device, byteVector, QAudio::AudioOutput)
 {
+    _audioThread = NULL;
 }
 
 AudioOutput::~AudioOutput()
@@ -18,33 +19,38 @@ void AudioOutput::start()
         _format = _device.nearestFormat(_format);
     }
 
-    _byteArray->clear();
-    _audioOutput->reset();
+    _byteVector->clear();
+    initOutput();
+    _byteArray = new QByteArray();
     _stream = new QDataStream(_byteArray, QIODevice::ReadOnly /*| QIODevice::Unbuffered*/);
 
     _ioDevice = _stream->device();
 
-     _ioDevice->open(QIODevice::ReadOnly);
+    _ioDevice->open(QIODevice::ReadOnly);
     _audioOutput->start(_ioDevice);
 
-    //#########
-    _audioThread = new AudioOutputDataThread(_ioDevice, _byteArray);
-    //QObject::connect( _audioThread, SIGNAL( finished() ), this, SLOT( finishedThread() ) );
+    _audioThread = new AudioOutputDataThread(_ioDevice, _byteArray, _byteVector);
+    QObject::connect( _audioThread, SIGNAL( finished() ), this, SLOT( finishedThread() ) );
 
     _audioThread->start();
 }
 
 void AudioOutput::stop()
 {
-    _audioOutput->stop();
+    if(_audioThread != NULL)
+        _audioThread->stop();
+
+    stopOutput();
 }
 
 void AudioOutput::finishedAudio(QAudio::State state)
 {
     if(state == QAudio::StoppedState)
-    {qDebug("finishedAudio");
+    {
         QObject * sender = QObject::sender();
         sender->disconnect();
+
+        delete sender;
 
         //_ioDevice->close();
 
@@ -52,12 +58,15 @@ void AudioOutput::finishedAudio(QAudio::State state)
         delete _stream;
 
         emit finished();
+
+        qDebug("finishedAudio");
     }
 }
 
-AudioOutputDataThread::AudioOutputDataThread(QIODevice * device, QByteArray * byteArray)
+AudioOutputDataThread::AudioOutputDataThread(QIODevice * device, QByteArray * byteArray, QVector<QByteArray> * byteVector)
 {
     _byteArray  = byteArray;
+    _byteVector = byteVector;
     _device     = device;
     _exitThread = false;
 }
@@ -66,8 +75,20 @@ void AudioOutputDataThread::run()
 {
     //int pos = 0;
     //int poss;
+    QMutex mutex;
     while(!_exitThread)
     {
+        mutex.lock();
+        if(_device->atEnd() && !_byteVector->isEmpty())
+        {
+            *_byteArray = _byteVector->first();
+            _byteVector->pop_front();
+            _device->reset();
+
+            qDebug("output");
+        }
+        mutex.unlock();
+
         /*QMutex mutex;
         mutex.lock();
         poss = _byteArray->size();

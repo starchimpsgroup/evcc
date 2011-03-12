@@ -7,8 +7,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    _audioInput  = NULL;
-    _audioOutput = NULL;
+    //_audioInput  = NULL;
+    //_audioOutput = NULL;
 
     // Set up the format, eg.
     _format.setFrequency(8000); // 44100 8000
@@ -18,9 +18,15 @@ MainWindow::MainWindow(QWidget *parent) :
     _format.setByteOrder(QAudioFormat::LittleEndian);
     _format.setSampleType(QAudioFormat::SignedInt);
 
-    _spectrum = new Spectrum(_audioInputByteArray, this);
+    //_spectrum = new Spectrum(_audioInputByteArray, this);
 
-    ui->gridLayout->addWidget(_spectrum,2,0);
+    //ui->gridLayout->addWidget(_spectrum,2,0);
+
+    _audioInputVector  = new QVector<QByteArray>();
+    _audioOutputVector = new QVector<QByteArray>();
+
+    _audioInput  = new AudioInput ( _format, audioDeviceByName("pulse", QAudio::AudioInput  ), _audioInputVector);
+    _audioOutput = new AudioOutput( _format, audioDeviceByName("pulse", QAudio::AudioOutput ), _audioInputVector);
 }
 
 MainWindow::~MainWindow()
@@ -48,18 +54,18 @@ void MainWindow::on_endCall_clicked()
 
 void MainWindow::stopAudioInput()
 {
-    if(_audioInput != NULL)
-    {
+    //if(_audioInput != NULL)
+    //{
         _audioInput->stop();
-        _audioInput = NULL;
+        //_audioInput = NULL;
 
         qDebug("record stop");
-    }
+    //}
 }
 
 void MainWindow::startAudioInput()
 {
-    _audioInputByteArray = new QByteArray();
+    /*_audioInputByteArray = new QByteArray();
 
     _audioInput = new AudioInput(_format, audioDeviceByName("pulse", QAudio::AudioInput), _audioInputByteArray);
     QObject::connect(_audioInput, SIGNAL( finished() ), this, SLOT( finishedAudio() ) );
@@ -67,6 +73,9 @@ void MainWindow::startAudioInput()
     _audioMap[_audioInput] = _audioInputByteArray;
 qDebug(qPrintable("new_byteArrayInput_Adress  " + QString::number((int)_audioInputByteArray))); // ###
 qDebug(qPrintable("new_audioInput_Adress      " + QString::number((int)_audioInput))); // ###
+    _audioInput->start();*/
+
+    _audioInputVector->clear();
     _audioInput->start();
 
     qDebug("record start");
@@ -74,20 +83,20 @@ qDebug(qPrintable("new_audioInput_Adress      " + QString::number((int)_audioInp
 
 void MainWindow::stopAudioOutput()
 {
-    if(_audioOutput != NULL)
-    {
+    //if(_audioOutput != NULL)
+    //{
         _audioOutput->stop();
-        _audioOutput = NULL;
+        //_audioOutput = NULL;
 
         qDebug("play stop");
-    }
+    //}
 }
 
 void MainWindow::startAudioOutput()
 {
     //_audioOutputByteArray = new QByteArray();
 
-    _audioOutputByteArray = _audioInputByteArray;
+    /*_audioOutputByteArray = _audioInputByteArray;
 
     _audioOutput = new AudioOutput(_format, audioDeviceByName("pulse", QAudio::AudioInput), _audioOutputByteArray);
     QObject::connect(_audioOutput, SIGNAL( finished() ), this, SLOT( finishedAudio() ) );
@@ -97,10 +106,15 @@ qDebug(qPrintable("new_byteArrayOutput_Adress " + QString::number((int)_audioOut
 qDebug(qPrintable("new_audioOutput_Adress     " + QString::number((int)_audioOutput))); // ###
     _audioOutput->start();
 
+    qDebug("play start");*/
+
+    _audioOutputVector->clear();
+    _audioOutput->start();
+
     qDebug("play start");
 }
 
-void MainWindow::finishedAudio()
+/*void MainWindow::finishedAudio()
 {
         QObject * sender = QObject::sender();
         sender->disconnect();
@@ -109,7 +123,7 @@ void MainWindow::finishedAudio()
         delete _audioMap.take(sender);
         delete sender;
         qDebug("finished");
-}
+}*/
 
 /**
   * ATTENTION: The default devices give a null-device at second call

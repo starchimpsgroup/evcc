@@ -7,7 +7,7 @@
 class AudioInputDataThread : public QThread
 {
 public:
-    AudioInputDataThread(QAudioInput * audioInput, QIODevice * device, QByteArray * byteArray);
+    AudioInputDataThread(QAudioInput * audioInput, QIODevice * device, QVector<QByteArray> * byteVector);
 
     void run();
     void stop(){ _exitThread = true; }
@@ -16,13 +16,14 @@ private:
     bool          _exitThread;
     QAudioInput * _audioInput;
     QIODevice   * _device;
-    QByteArray  * _byteArray;
+    //QByteArray  * _byteArray;
+    QVector<QByteArray> * _byteVector;
 };
 
 class AudioInput : public Audio
 {
 public:
-    AudioInput(QAudioFormat format, QAudioDeviceInfo device, QByteArray * byteArray);
+    AudioInput(QAudioFormat format, QAudioDeviceInfo device, QVector<QByteArray> * byteVector);
     ~AudioInput();
 
     void start();
