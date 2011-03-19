@@ -2,7 +2,7 @@
 #define AUDIOINPUT_H
 
 #include "audio.h"
-#include "QThread"
+#include <QThread>
 
 class AudioInputDataThread : public QThread
 {
@@ -18,6 +18,7 @@ private:
     QIODevice   * _device;
     //QByteArray  * _byteArray;
     QVector<QByteArray> * _byteVector;
+
 };
 
 class AudioInput : public Audio

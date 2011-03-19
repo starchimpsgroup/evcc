@@ -1,5 +1,5 @@
 #include "audioinput.h"
-#include "QMutex"
+#include <QMutex>
 
 AudioInput::AudioInput(QAudioFormat format, QAudioDeviceInfo device, QVector<QByteArray> * byteVector) :
                  Audio(format, device, byteVector, QAudio::AudioInput)
@@ -64,19 +64,24 @@ AudioInputDataThread::AudioInputDataThread(QAudioInput * audioInput, QIODevice *
 
 void AudioInputDataThread::run()
 {
+    QByteArray temp;
     QMutex mutex;
     while(!_exitThread)
     {
         mutex.lock();
         if( _audioInput->bytesReady() >= _audioInput->periodSize() )
         {
+            temp = _device->read(_audioInput->periodSize());
 
-            _byteVector->append(_device->read(_audioInput->bytesReady()));
+            _byteVector->append(temp);
+
+            //_byteVector->append(_device->read(_audioInput->periodSize()));
+            //_byteVector->append(_device->read(_audioInput->bytesReady()));
             //_byteArray->append( _device->read(_audioInput->bytesReady()) );
-
             //qDebug(qPrintable("BufferSize:    " + QString::number(_audioInput->bufferSize())));
             //qDebug(qPrintable("ByteArraySize: " + QString::number(_byteArray->size())));
             qDebug(qPrintable("Packets: " + QString::number(_byteVector->size())));
+            //qDebug(qPrintable("Packet size: " + QString::number(_byteVector->last().size())));
         }
         mutex.unlock();
     }

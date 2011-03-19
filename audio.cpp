@@ -6,8 +6,6 @@ Audio::Audio(QAudioFormat format, QAudioDeviceInfo device, QVector<QByteArray> *
     _format      = format;
     _device      = device;
 
-    qDebug(qPrintable(device.deviceName()));
-
     _audioInput  = NULL;
     _audioOutput = NULL;
 
@@ -21,6 +19,7 @@ Audio::Audio(QAudioFormat format, QAudioDeviceInfo device, QVector<QByteArray> *
     }*/
 
     _byteVector  = byteVector;
+
 }
 
 void Audio::finishedAudio(QAudio::State state)

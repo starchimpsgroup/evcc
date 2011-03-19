@@ -36,6 +36,7 @@ protected slots:
 
 signals:
     void finished();
+    void audioData(QByteArray);
 };
 
 #endif // AUDIO_H
