@@ -17,7 +17,10 @@ SOURCES += main.cpp\
            audio.cpp \
            client.cpp \
            server.cpp \
-           choice.cpp
+           choice.cpp \
+    servermessages.cpp \
+    login.cpp \
+    serverconnection.cpp
 
 HEADERS  += mainwindow.h \
             audioinput.h \
@@ -25,11 +28,15 @@ HEADERS  += mainwindow.h \
             audio.h \
             client.h \
             server.h \
-            choice.h
+            choice.h \
+    servermessages.h \
+    login.h \
+    serverconnection.h
 
 FORMS    += mainwindow.ui \
             client.ui \
             server.ui \
-            choice.ui
+            choice.ui \
+    login.ui
 
 OTHER_FILES += README.markdown

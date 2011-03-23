@@ -13,9 +13,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    delete _choice;
-    delete _client;
-    delete _server;
     delete ui;
 }
 

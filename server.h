@@ -2,6 +2,8 @@
 #define SERVER_H
 
 #include <QWidget>
+#include "serverconnection.h"
+#include "servermessages.h"
 
 namespace Ui {
     class Server;
@@ -16,7 +18,12 @@ public:
     ~Server();
 
 private:
-    Ui::Server *ui;
+    Ui::Server        * ui;
+    ServerConnection  * _tcpServer;
+    QString             _serverLog;
+
+public slots:
+    void addMessage(QString text, ServerMessages::MessageTyp typ);
 };
 
 #endif // SERVER_H

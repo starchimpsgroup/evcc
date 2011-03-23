@@ -26,7 +26,7 @@ void AudioOutput::start()
 
     _ioDevice = _stream->device();
 
-    _ioDevice->open(QIODevice::ReadOnly);
+    _ioDevice->open(QIODevice::ReadWrite);
     _audioOutput->start(_ioDevice);
 
     _audioThread = new AudioOutputDataThread(_ioDevice, _byteArray, _byteVector);
@@ -78,14 +78,15 @@ void AudioOutputDataThread::run()
     QMutex mutex;
     while(!_exitThread)
     {
+
         mutex.lock();
         if(_device->atEnd() && !_byteVector->isEmpty())
         {
             *_byteArray = _byteVector->first();
+            //_device->reset();
+            //_device->write(_byteVector->first());
             _byteVector->pop_front();
             _device->reset();
-
-            qDebug("output");
         }
         mutex.unlock();
 

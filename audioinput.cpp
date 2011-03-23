@@ -72,8 +72,22 @@ void AudioInputDataThread::run()
         if( _audioInput->bytesReady() >= _audioInput->periodSize() )
         {
             temp = _device->read(_audioInput->periodSize());
+            _device->seek(0);
 
             _byteVector->append(temp);
+
+            //qDebug(qPrintable("Pos: " + QString::number(_device->pos())));
+            //qDebug(qPrintable("Pos: " + QString::number(_device->)));
+
+            /*if(_device->isOpen())
+            {
+                qDebug("open");
+            }
+
+            if(_device->isReadable())
+            {
+                qDebug("redable");
+            }*/
 
             //_byteVector->append(_device->read(_audioInput->periodSize()));
             //_byteVector->append(_device->read(_audioInput->bytesReady()));

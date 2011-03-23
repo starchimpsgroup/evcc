@@ -30,6 +30,11 @@ Client::~Client()
     stopAudioInput();
     stopAudioOutput();
 
+    delete _audioInputVector;
+    delete _audioOutputVector;
+    delete _audioInput;
+    delete _audioOutput;
+
     delete ui;
 }
 
@@ -53,6 +58,7 @@ void Client::stopAudioInput()
     //if(_audioInput != NULL)
     //{
         _audioInput->stop();
+        _audioInputVector->clear();
         //_audioInput = NULL;
 
         qDebug("record stop");
@@ -82,6 +88,7 @@ void Client::stopAudioOutput()
     //if(_audioOutput != NULL)
     //{
         _audioOutput->stop();
+        _audioOutputVector->clear();
         //_audioOutput = NULL;
 
         qDebug("play stop");
