@@ -2,8 +2,10 @@
 #define TCPSERVER_H
 
 #include <QTcpServer>
+#include <QTcpSocket>
 #include <QHostAddress>
 #include "servermessages.h"
+#include "user.h"
 
 class ServerConnection : public QTcpServer
 {
@@ -19,8 +21,13 @@ private:
     QString                    _serverStatus;
     ServerMessages::MessageTyp _serverStatusTyp;
 
-private slots:
-    void send();
+    QHash<QTcpSocket*, User*>  _users;
+
+private:
+    void incomingConnection ( int socketDescriptor );
+
+//private slots:
+//    void send();
 
 signals:
     void message(QString text, ServerMessages::MessageTyp typ);

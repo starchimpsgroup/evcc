@@ -27,7 +27,6 @@ protected:
     QAudioFormat          _format;
     QAudioInput         * _audioInput;
     QAudioOutput        * _audioOutput;
-    //QByteArray          * _byteArray;
     QVector<QByteArray> * _byteVector;
 
 protected slots:

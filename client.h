@@ -6,6 +6,7 @@
 #include "audioinput.h"
 #include "audiooutput.h"
 #include <QMap>
+#include "clientconnection.h"
 
 namespace Ui {
     class Client;
@@ -16,7 +17,7 @@ class Client : public QWidget
     Q_OBJECT
 
 public:
-    explicit Client(QWidget *parent = 0);
+    explicit Client(QString server, quint16 port, QWidget *parent = 0);
     ~Client();
 
     void stopAudioInput();
@@ -30,19 +31,19 @@ public:
 private:
     QAudioFormat _format;
 
-    //QByteArray  * _audioInputByteArray;
-    //QByteArray  * _audioOutputByteArray;
     QVector<QByteArray> * _audioInputVector;
     QVector<QByteArray> * _audioOutputVector;
-    AudioInput  * _audioInput;
-    AudioOutput * _audioOutput;
+    AudioInput          * _audioInput;
+    AudioOutput         * _audioOutput;
 
-    //QMap<QObject *, QByteArray *> _audioMap;
+    ClientConnection    * _connection;
+    QString               _server;
+    quint16               _port;
 
 private slots:
     void on_call_clicked();
     void on_endCall_clicked();
-    //void finishedAudio();
+    void showMessage(QString, ServerMessages::MessageTyp);
 
 private:
     Ui::Client *ui;

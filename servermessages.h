@@ -13,6 +13,8 @@ public:
         ERROR,
         TEXT,
         SEND,
+        WARNING,
+        INFORMATION,
     }
     MessageTyp;
 };

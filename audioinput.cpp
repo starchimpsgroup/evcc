@@ -49,15 +49,12 @@ void AudioInput::finishedThread()
     delete sender;
 
     qDebug("finishedThread");
-
-    //_audioInput->stop();
 }
 
 AudioInputDataThread::AudioInputDataThread(QAudioInput * audioInput, QIODevice * device, QVector<QByteArray> * byteVector)
 {
     _audioInput = audioInput;
     _device     = device;
-    //_byteArray  = byteArray;
     _byteVector = byteVector;
     _exitThread = false;
 }
@@ -76,31 +73,10 @@ void AudioInputDataThread::run()
 
             _byteVector->append(temp);
 
-            //qDebug(qPrintable("Pos: " + QString::number(_device->pos())));
-            //qDebug(qPrintable("Pos: " + QString::number(_device->)));
-
-            /*if(_device->isOpen())
-            {
-                qDebug("open");
-            }
-
-            if(_device->isReadable())
-            {
-                qDebug("redable");
-            }*/
-
-            //_byteVector->append(_device->read(_audioInput->periodSize()));
-            //_byteVector->append(_device->read(_audioInput->bytesReady()));
-            //_byteArray->append( _device->read(_audioInput->bytesReady()) );
-            //qDebug(qPrintable("BufferSize:    " + QString::number(_audioInput->bufferSize())));
-            //qDebug(qPrintable("ByteArraySize: " + QString::number(_byteArray->size())));
-            qDebug(qPrintable("Packets: " + QString::number(_byteVector->size())));
-            //qDebug(qPrintable("Packet size: " + QString::number(_byteVector->last().size())));
+            //qDebug(qPrintable("Packets: " + QString::number(_byteVector->size())));
         }
         mutex.unlock();
     }
-
-    //qDebug(qPrintable("Bytes read: " + QString::number(_byteArray->size()))); // ####
 
     return;
 

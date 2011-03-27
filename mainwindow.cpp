@@ -1,5 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "login.h"
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -20,8 +22,32 @@ void MainWindow::setPage(Choice::ContentPage page)
 {
     if(page == Choice::CLIENT)
     {
-        _client = new Client(this);
-        setCentralWidget(_client);
+        Login login;
+        login.exec();
+
+        if(login.login())
+        {
+            if(login.server().isEmpty())
+            {
+                QMessageBox::warning(this, tr("Input error"),
+                                           tr("Please enter a server."));
+            }
+            else if(login.port() == 0)
+            {
+                QMessageBox::warning(this, tr("Input error"),
+                                           tr("Please enter a port."));
+            }
+            else if(login.name().isEmpty())
+            {
+                QMessageBox::warning(this, tr("Input error"),
+                                           tr("Please enter a name."));
+            }
+            else
+            {
+                _client = new Client(login.server(), login.port(), this);
+                setCentralWidget(_client);
+            }
+        }
     }
     else if(page == Choice::SERVER)
     {

@@ -15,8 +15,21 @@ public:
     explicit Login(QWidget *parent = 0);
     ~Login();
 
+    QString name()  { return _name;   }
+    QString server(){ return _server; }
+    quint16 port()  { return _port;   }
+    bool    login() { return _login;  }
+
 private:
-    Ui::Login *ui;
+    Ui::Login * ui;
+    QString     _name;
+    QString     _server;
+    quint16     _port;
+    bool        _login;
+
+private slots:
+    void on_buttonBox_accepted();
+    void on_buttonBox_rejected();
 };
 
 #endif // LOGIN_H

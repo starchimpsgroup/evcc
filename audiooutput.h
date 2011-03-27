@@ -13,9 +13,9 @@ public:
     void stop(){ _exitThread = true; }
 
 private:
-    bool          _exitThread;
-    QIODevice    * _device;
-    QByteArray   * _byteArray;
+    bool                  _exitThread;
+    QIODevice           * _device;
+    QByteArray          * _byteArray;
     QVector<QByteArray> * _byteVector;
 };
 

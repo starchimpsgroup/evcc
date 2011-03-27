@@ -9,15 +9,6 @@ Audio::Audio(QAudioFormat format, QAudioDeviceInfo device, QVector<QByteArray> *
     _audioInput  = NULL;
     _audioOutput = NULL;
 
-    /*if(mode == QAudio::AudioInput)
-    {
-        initInput();
-    }
-    else if(mode == QAudio::AudioOutput)
-    {
-        initOutput();
-    }*/
-
     _byteVector  = byteVector;
 
 }

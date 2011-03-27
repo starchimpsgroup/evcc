@@ -1,5 +1,4 @@
 #include "serverconnection.h"
-#include <QTcpSocket>
 #include <QMessageBox>
 
 ServerConnection::ServerConnection(quint16 port, QHostAddress host, QObject* parent) :
@@ -14,20 +13,32 @@ ServerConnection::ServerConnection(quint16 port, QHostAddress host, QObject* par
         return;
     }
 
-    _serverStatus = tr("Server started.");
+    _serverStatus    = tr("Server started.");
     _serverStatusTyp = ServerMessages::TEXT;
 
-    connect( this, SIGNAL(newConnection()), this, SLOT(send()) );
+    //connect( this, SIGNAL(newConnection()), this, SLOT(send()) );
 };
 
-void ServerConnection::send()
+void ServerConnection::incomingConnection ( int socketDescriptor )
+{
+    QTcpSocket * incomingSocket = new QTcpSocket(this);
+    incomingSocket->setSocketDescriptor(socketDescriptor);
+    addPendingConnection(incomingSocket);
+
+    connect(incomingSocket, SIGNAL(disconnected()), this, SLOT(socketDisconnected()));
+    connect(incomingSocket, SIGNAL(readyRead()),    this, SLOT(socketReadyRead()));
+
+    _users.insert(incomingSocket, new User(incomingSocket));
+}
+
+/*void ServerConnection::send()
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_4_0);
 
     out << (quint16)0;
-    out << QString("test");
+    out << QString("test123456");
     out.device()->seek(0);
     out << (quint16)(block.size() - sizeof(quint16));
 
@@ -40,4 +51,4 @@ void ServerConnection::send()
 
     clientConnection->write(block);
     clientConnection->disconnectFromHost();
-}
+}*/

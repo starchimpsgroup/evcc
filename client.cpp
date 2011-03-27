@@ -1,14 +1,22 @@
 #include "client.h"
 #include "ui_client.h"
+#include <QMessageBox>
 
-Client::Client(QWidget *parent) :
+Client::Client(QString server, quint16 port, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Client)
 {
     ui->setupUi(this);
 
-    //_audioInput  = NULL;
-    //_audioOutput = NULL;
+    _server = server;
+    _port   = port;
+
+    _connection = new ClientConnection(server, port);
+
+    connect(_connection,
+            SIGNAL(message(QString,ServerMessages::MessageTyp)),
+            this,
+            SLOT(showMessage(QString,ServerMessages::MessageTyp)));
 
     // Set up the format, eg.
     _format.setFrequency(44100); // 44100 8000
@@ -34,6 +42,7 @@ Client::~Client()
     delete _audioOutputVector;
     delete _audioInput;
     delete _audioOutput;
+    delete _connection;
 
     delete ui;
 }
@@ -55,28 +64,14 @@ void Client::on_endCall_clicked()
 
 void Client::stopAudioInput()
 {
-    //if(_audioInput != NULL)
-    //{
-        _audioInput->stop();
-        _audioInputVector->clear();
-        //_audioInput = NULL;
+    _audioInput->stop();
+    _audioInputVector->clear();
 
-        qDebug("record stop");
-    //}
+    qDebug("record stop");
 }
 
 void Client::startAudioInput()
 {
-    /*_audioInputByteArray = new QByteArray();
-
-    _audioInput = new AudioInput(_format, audioDeviceByName("pulse", QAudio::AudioInput), _audioInputByteArray);
-    QObject::connect(_audioInput, SIGNAL( finished() ), this, SLOT( finishedAudio() ) );
-
-    _audioMap[_audioInput] = _audioInputByteArray;
-qDebug(qPrintable("new_byteArrayInput_Adress  " + QString::number((int)_audioInputByteArray))); // ###
-qDebug(qPrintable("new_audioInput_Adress      " + QString::number((int)_audioInput))); // ###
-    _audioInput->start();*/
-
     _audioInputVector->clear();
     _audioInput->start();
 
@@ -85,48 +80,19 @@ qDebug(qPrintable("new_audioInput_Adress      " + QString::number((int)_audioInp
 
 void Client::stopAudioOutput()
 {
-    //if(_audioOutput != NULL)
-    //{
-        _audioOutput->stop();
-        _audioOutputVector->clear();
-        //_audioOutput = NULL;
+    _audioOutput->stop();
+    _audioOutputVector->clear();
 
-        qDebug("play stop");
-    //}
+    qDebug("play stop");
 }
 
 void Client::startAudioOutput()
 {
-    //_audioOutputByteArray = new QByteArray();
-
-    /*_audioOutputByteArray = _audioInputByteArray;
-
-    _audioOutput = new AudioOutput(_format, audioDeviceByName("pulse", QAudio::AudioInput), _audioOutputByteArray);
-    QObject::connect(_audioOutput, SIGNAL( finished() ), this, SLOT( finishedAudio() ) );
-
-    //_audioMap[_audioOutput] = _audioOutputByteArray;
-qDebug(qPrintable("new_byteArrayOutput_Adress " + QString::number((int)_audioOutputByteArray))); // ###
-qDebug(qPrintable("new_audioOutput_Adress     " + QString::number((int)_audioOutput))); // ###
-    _audioOutput->start();
-
-    qDebug("play start");*/
-
     _audioOutputVector->clear();
     _audioOutput->start();
 
     qDebug("play start");
 }
-
-/*void MainWindow::finishedAudio()
-{
-        QObject * sender = QObject::sender();
-        sender->disconnect();
- qDebug(qPrintable("delete_byteArray_Adress " + QString::number((int)_audioMap[sender]))); // ###
- qDebug(qPrintable("delete_audio_Adress     " + QString::number((int)sender))); // ###
-        delete _audioMap.take(sender);
-        delete sender;
-        qDebug("finished");
-}*/
 
 /**
   * ATTENTION: The default devices give a null-device at second call
@@ -155,4 +121,13 @@ QAudioDeviceInfo Client::audioDeviceByName( QString name, QAudio::Mode mode )
     }
 
     return QAudioDeviceInfo();
+}
+
+void Client::showMessage(QString text, ServerMessages::MessageTyp typ)
+{
+    if(typ == ServerMessages::INFORMATION)
+    {
+        QMessageBox::information(this, tr("Information"),
+                                 text);
+    }
 }

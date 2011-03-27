@@ -51,10 +51,6 @@ void AudioOutput::finishedAudio(QAudio::State state)
         sender->disconnect();
 
         delete sender;
-
-        //_ioDevice->close();
-
-        //delete _ioDevice;
         delete _stream;
 
         emit finished();
@@ -73,8 +69,6 @@ AudioOutputDataThread::AudioOutputDataThread(QIODevice * device, QByteArray * by
 
 void AudioOutputDataThread::run()
 {
-    //int pos = 0;
-    //int poss;
     QMutex mutex;
     while(!_exitThread)
     {
@@ -89,26 +83,7 @@ void AudioOutputDataThread::run()
             _device->reset();
         }
         mutex.unlock();
-
-        /*QMutex mutex;
-        mutex.lock();
-        poss = _byteArray->size();
-        if(poss > pos)
-        {
-            qDebug(qPrintable(QString::number(_byteArray->at(pos))));
-            pos++;
-        }
-        mutex.unlock();*/
-
-        /*poss = _device->pos();
-        if(pos != poss)
-        {
-            pos = poss;
-            qDebug(qPrintable("Position: " + QString::number(poss)));
-        }*/
     }
-
-    //qDebug(qPrintable("Bytes read: " + QString::number(_byteArray->size()))); // ####
 
     return;
 
