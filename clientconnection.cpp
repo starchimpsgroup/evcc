@@ -1,6 +1,6 @@
 #include "clientconnection.h"
 
-ClientConnection::ClientConnection(QString server, quint16 port, QObject *parent) :
+ClientConnection::ClientConnection(QString server, quint16 port, QString userName, QObject *parent) :
     QObject(parent)
 {
     _server = server;
@@ -9,9 +9,18 @@ ClientConnection::ClientConnection(QString server, quint16 port, QObject *parent
     _socket = new QTcpSocket(this);
     _socket->connectToHost(_server, _port);
 
+    _user = new User(_socket);
+    _user->setName(userName);
+
     connect(_socket, SIGNAL(readyRead()), this, SLOT(read()));
     connect(_socket, SIGNAL(error(QAbstractSocket::SocketError)),
             this, SLOT(displayError(QAbstractSocket::SocketError)));
+}
+
+ClientConnection::~ClientConnection()
+{
+    delete _user;
+    delete _socket;
 }
 
 void ClientConnection::read()

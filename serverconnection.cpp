@@ -25,10 +25,20 @@ void ServerConnection::incomingConnection ( int socketDescriptor )
     incomingSocket->setSocketDescriptor(socketDescriptor);
     addPendingConnection(incomingSocket);
 
-    connect(incomingSocket, SIGNAL(disconnected()), this, SLOT(socketDisconnected()));
-    connect(incomingSocket, SIGNAL(readyRead()),    this, SLOT(socketReadyRead()));
+    QObject::connect(incomingSocket, SIGNAL(disconnected()), this, SLOT(socketDisconnected()));
+    QObject::connect(incomingSocket, SIGNAL(readyRead()),    this, SLOT(socketReadyRead()));
 
     _users.insert(incomingSocket, new User(incomingSocket));
+}
+
+void ServerConnection::socketReadyRead()
+{
+
+}
+
+void ServerConnection::socketDisconnected()
+{
+    qDebug("diconnected");
 }
 
 /*void ServerConnection::send()

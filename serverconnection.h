@@ -26,8 +26,9 @@ private:
 private:
     void incomingConnection ( int socketDescriptor );
 
-//private slots:
-//    void send();
+private slots:
+    void socketReadyRead();
+    void socketDisconnected();
 
 signals:
     void message(QString text, ServerMessages::MessageTyp typ);

@@ -11,6 +11,7 @@ Audio::Audio(QAudioFormat format, QAudioDeviceInfo device, QVector<QByteArray> *
 
     _byteVector  = byteVector;
 
+    _mode        = mode;
 }
 
 void Audio::finishedAudio(QAudio::State state)
@@ -25,6 +26,18 @@ void Audio::finishedAudio(QAudio::State state)
         emit finished();
 
         qDebug("finishedAudio");
+    }
+    else if(state == QAudio::ActiveState)
+    {
+        qDebug(qPrintable(typ() + " QAudio::ActiveState"));
+    }
+    else if(state == QAudio::SuspendedState)
+    {
+        qDebug(qPrintable(typ() + " QAudio::SuspendedState"));
+    }
+    else if(state == QAudio::IdleState)
+    {
+        qDebug(qPrintable(typ() + " QAudio::IdleState"));
     }
 }
 
@@ -70,4 +83,18 @@ void Audio::stopOutput()
         _audioOutput->stop();
         _audioOutput = NULL;
     }
+}
+
+QString Audio::typ()
+{
+    if(_mode == QAudio::AudioInput)
+    {
+        return "Input";
+    }
+    else if(_mode == QAudio::AudioOutput)
+    {
+        return "Output";
+    }
+
+    return QString::number(_mode);
 }

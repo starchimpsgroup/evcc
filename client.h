@@ -17,7 +17,7 @@ class Client : public QWidget
     Q_OBJECT
 
 public:
-    explicit Client(QString server, quint16 port, QWidget *parent = 0);
+    explicit Client(QString server, quint16 port, QString userName, QWidget *parent = 0);
     ~Client();
 
     void stopAudioInput();

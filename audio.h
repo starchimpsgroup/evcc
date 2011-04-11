@@ -5,6 +5,7 @@
 #include <QAudioOutput>
 #include <QThread>
 #include <QVector>
+#include <QAudio>
 
 class Audio : public QObject
 {
@@ -14,6 +15,11 @@ public:
 
     virtual void start() = 0;
     virtual void stop()  = 0;
+
+    QString typ();
+
+private:
+    QAudio::Mode          _mode;
 
 protected:
     void initInput();
@@ -30,6 +36,7 @@ protected:
     QVector<QByteArray> * _byteVector;
 
 protected slots:
+    //void readAudioData(){};
     virtual void finishedThread();
     void finishedAudio( QAudio::State state );
 

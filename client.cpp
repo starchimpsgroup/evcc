@@ -2,7 +2,7 @@
 #include "ui_client.h"
 #include <QMessageBox>
 
-Client::Client(QString server, quint16 port, QWidget *parent) :
+Client::Client(QString server, quint16 port, QString userName, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Client)
 {
@@ -11,15 +11,15 @@ Client::Client(QString server, quint16 port, QWidget *parent) :
     _server = server;
     _port   = port;
 
-    _connection = new ClientConnection(server, port);
+    /*_connection = new ClientConnection(server, port, userName);
 
     connect(_connection,
             SIGNAL(message(QString,ServerMessages::MessageTyp)),
             this,
-            SLOT(showMessage(QString,ServerMessages::MessageTyp)));
+            SLOT(showMessage(QString,ServerMessages::MessageTyp)));*/
 
     // Set up the format, eg.
-    _format.setFrequency(44100); // 44100 8000
+    _format.setFrequency(8000); // 44100 8000
     _format.setChannels(1);
     _format.setSampleSize(16);
     _format.setCodec("audio/pcm");
@@ -42,7 +42,7 @@ Client::~Client()
     delete _audioOutputVector;
     delete _audioInput;
     delete _audioOutput;
-    delete _connection;
+    //delete _connection;
 
     delete ui;
 }

@@ -23,30 +23,17 @@ void MainWindow::setPage(Choice::ContentPage page)
     if(page == Choice::CLIENT)
     {
         Login login;
-        login.exec();
 
-        if(login.login())
+        while(login.login() == Login::WRONGINPUT)
         {
-            if(login.server().isEmpty())
+            login.exec();
+
+            if(login.login() == Login::OK)
             {
-                QMessageBox::warning(this, tr("Input error"),
-                                           tr("Please enter a server."));
-            }
-            else if(login.port() == 0)
-            {
-                QMessageBox::warning(this, tr("Input error"),
-                                           tr("Please enter a port."));
-            }
-            else if(login.name().isEmpty())
-            {
-                QMessageBox::warning(this, tr("Input error"),
-                                           tr("Please enter a name."));
-            }
-            else
-            {
-                _client = new Client(login.server(), login.port(), this);
+                _client = new Client(login.server(), login.port(), login.name(), this);
                 setCentralWidget(_client);
             }
+
         }
     }
     else if(page == Choice::SERVER)

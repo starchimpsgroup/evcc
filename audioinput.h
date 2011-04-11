@@ -34,6 +34,7 @@ private:
     QIODevice            * _ioDevice;
 
 protected slots:
+    //void readAudioData();
     void finishedThread();
 };
 
