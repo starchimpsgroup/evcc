@@ -44,6 +44,13 @@ private slots:
     void on_call_clicked();
     void on_endCall_clicked();
     void showMessage(QString, ServerMessages::MessageTyp);
+    void connectionEstablishedForward(){ emit connectionEstablished(); }
+    void connectionLostForward()       { emit connectionLost(); }
+
+signals:
+    void serverError();
+    void connectionEstablished();
+    void connectionLost();
 
 private:
     Ui::Client *ui;

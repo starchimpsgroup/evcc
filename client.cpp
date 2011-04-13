@@ -11,12 +11,15 @@ Client::Client(QString server, quint16 port, QString userName, QWidget *parent) 
     _server = server;
     _port   = port;
 
-    /*_connection = new ClientConnection(server, port, userName);
+    _connection = new ClientConnection(server, port, userName);
 
-    connect(_connection,
-            SIGNAL(message(QString,ServerMessages::MessageTyp)),
-            this,
-            SLOT(showMessage(QString,ServerMessages::MessageTyp)));*/
+    QObject::connect(_connection,
+                     SIGNAL(message(QString,ServerMessages::MessageTyp)),
+                     this,
+                     SLOT(showMessage(QString,ServerMessages::MessageTyp)));
+
+    QObject::connect(_connection, SIGNAL(connectionEstablished()), this, SLOT(connectionEstablishedForward()));
+    QObject::connect(_connection, SIGNAL(connectionLost()),        this, SLOT(connectionLostForward()));
 
     // Set up the format, eg.
     _format.setFrequency(8000); // 44100 8000
@@ -42,7 +45,7 @@ Client::~Client()
     delete _audioOutputVector;
     delete _audioInput;
     delete _audioOutput;
-    //delete _connection;
+    delete _connection;
 
     delete ui;
 }
@@ -125,9 +128,17 @@ QAudioDeviceInfo Client::audioDeviceByName( QString name, QAudio::Mode mode )
 
 void Client::showMessage(QString text, ServerMessages::MessageTyp typ)
 {
-    if(typ == ServerMessages::INFORMATION)
+    switch(typ)
     {
+    case ServerMessages::INFORMATION:
         QMessageBox::information(this, tr("Information"),
                                  text);
+        break;
+
+    case ServerMessages::ERROR:
+        QMessageBox::information(this, tr("Error"),
+                                 text);
+        emit serverError();
+        break;
     }
 }

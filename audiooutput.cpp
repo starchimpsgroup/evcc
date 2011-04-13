@@ -9,7 +9,6 @@ AudioOutput::AudioOutput(QAudioFormat format, QAudioDeviceInfo device, QVector<Q
 
 AudioOutput::~AudioOutput()
 {
-    delete _byteArray;
     stop();
 }
 
@@ -98,28 +97,17 @@ void AudioOutputDataThread::run()
     QMutex mutex;
     while(!_exitThread)
     {
-        //if(_audioOutput->error() != 0)
-        //    qDebug(qPrintable("Output " + QString::number(_audioOutput->error())));
-
         if(_audioOutput->error() != 0)
         {
-            //_audioOutput->suspend();
-            //_audioOutput->resume();
             _error = true;
             break;
         }
 
         mutex.lock();
         if(!_byteVector->isEmpty())
-        //if(_device->atEnd() && !_byteVector->isEmpty())
         {
-            //#*_byteArray = _byteVector->first();
-            //lastPos = _device->pos();
             _byteArray->append(_byteVector->first());
-            //_device->reset();
-            //_device->write(_byteVector->first());
             _byteVector->pop_front();
-            //#_device->reset();
         }
         mutex.unlock();
     }

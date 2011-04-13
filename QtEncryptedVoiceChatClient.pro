@@ -22,7 +22,8 @@ SOURCES += main.cpp\
     login.cpp \
     serverconnection.cpp \
     clientconnection.cpp \
-    user.cpp
+    user.cpp \
+    serverconnectiontyps.cpp
 
 HEADERS  += mainwindow.h \
             audioinput.h \
@@ -35,7 +36,8 @@ HEADERS  += mainwindow.h \
     login.h \
     serverconnection.h \
     clientconnection.h \
-    user.h
+    user.h \
+    serverconnectiontyps.h
 
 FORMS    += mainwindow.ui \
             client.ui \

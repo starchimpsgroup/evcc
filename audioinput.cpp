@@ -20,15 +20,8 @@ void AudioInput::start()
     }
 
     initInput();
-    /*_ioDevice = new QBuffer();
-
-    if (!_ioDevice->open(QIODevice::ReadWrite))
-        qDebug("unable to open buffer");*/
 
     _ioDevice = _audioInput->start();
-
-    //Q_ASSERT(_ioDevice);
-    //QObject::connect(_ioDevice, SIGNAL(readyRead()), this, SLOT(readAudioData()));
 
     _audioThread = new AudioInputDataThread(_audioInput, _ioDevice, _byteVector);
     _audioThread->setParent(this);
@@ -36,28 +29,6 @@ void AudioInput::start()
 
     _audioThread->start();
 }
-
-/*void AudioInput::readAudioData()
-{
-    qDebug("test");
-    QBuffer * sender = (QBuffer *)QObject::sender();
-    QByteArray appendData;
-
-    if( _audioInput->bytesReady() >= _audioInput->periodSize() )
-    {
-        appendData = sender->read(_audioInput->periodSize());
-        //sender->reset();
-        //sender->seek(0);
-
-        //sender->read(data, _audioInput->periodSize());
-        //appendData = data;
-
-        _byteVector->append(appendData);
-
-        qDebug(qPrintable("Packets: " + QString::number(_byteVector->size())));
-    }
-    qDebug(qPrintable("BytesReady: " + QString::number(_audioInput->bytesReady())));
-}*/
 
 void AudioInput::stop()
 {
@@ -92,31 +63,20 @@ AudioInputDataThread::AudioInputDataThread(QAudioInput * audioInput, QIODevice *
 void AudioInputDataThread::run()
 {
     QByteArray appendData;
-    //char * data;
     QMutex mutex;
     while(!_exitThread)
     {
         if(_audioInput->error() != 0)
             qDebug(qPrintable("Input " + QString::number(_audioInput->error())));
 
-        //qDebug(qPrintable("BytesReady: " + QString::number(_audioInput->bytesReady())));
-        //qDebug(qPrintable("PeriodSize: " + QString::number(_audioInput->periodSize())));
-        //qDebug(qPrintable("BufferSize: " + QString::number(_audioInput->bufferSize())));
-
         mutex.lock();
         if( _audioInput->bytesReady() >= _audioInput->periodSize() )
         {
-            //_device->seek(0);
             appendData = _device->read(_audioInput->periodSize());
-            //_device->reset();
             _device->seek(0);
-
-            //_device->read(data, _audioInput->bytesReady()/*_audioInput->periodSize()*/);
-            //appendData = data;
 
             _byteVector->append(appendData);
 
-            //qDebug(qPrintable("Packets: " + QString::number(_byteVector->size())));
         }
         mutex.unlock();
     }

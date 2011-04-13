@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QTcpSocket>
 #include "servermessages.h"
+#include "serverconnectiontyps.h"
 #include "user.h"
 
 class ClientConnection : public QObject
@@ -18,9 +19,15 @@ private:
     QString      _server;
     quint16      _port;
     User       * _user;
+    QHash<QString, QString> _users; // name, key
+
+private:
+    qint32 connectionTyp(ServerConnectionTyps::ConnectionTyp t){ return (qint32)t; }
 
 signals:
-    void message(QString text, ServerMessages::MessageTyp typ);
+    void message(QString, ServerMessages::MessageTyp);
+    void connectionEstablished();
+    void connectionLost();
 
 public slots:
     void read();

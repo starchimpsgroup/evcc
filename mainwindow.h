@@ -27,6 +27,9 @@ private:
 
 private slots:
     void setPage(Choice::ContentPage page);
+    void serverError();
+    void connectionEstablished();
+    void connectionLost();
 };
 
 #endif // MAINWINDOW_H

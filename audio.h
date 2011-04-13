@@ -36,7 +36,6 @@ protected:
     QVector<QByteArray> * _byteVector;
 
 protected slots:
-    //void readAudioData(){};
     virtual void finishedThread();
     void finishedAudio( QAudio::State state );
 

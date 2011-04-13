@@ -5,6 +5,7 @@
 #include <QTcpSocket>
 #include <QHostAddress>
 #include "servermessages.h"
+#include "serverconnectiontyps.h"
 #include "user.h"
 
 class ServerConnection : public QTcpServer
@@ -25,6 +26,8 @@ private:
 
 private:
     void incomingConnection ( int socketDescriptor );
+    bool isNameExistent(QString name);
+    qint32 connectionTyp(ServerConnectionTyps::ConnectionTyp t){ return (qint32)t; }
 
 private slots:
     void socketReadyRead();

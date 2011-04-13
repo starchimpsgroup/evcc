@@ -18,6 +18,35 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::serverError()
+{
+    setCentralWidget(_choice);
+
+    QObject * sender = QObject::sender();
+    sender->disconnect();
+
+    delete sender;
+
+    qDebug("ServerError");
+}
+
+void MainWindow::connectionEstablished()
+{
+    setCentralWidget(_client);
+}
+
+void MainWindow::connectionLost()
+{
+    setCentralWidget(_choice);
+
+    QObject * sender = QObject::sender();
+    sender->disconnect();
+
+    delete sender;
+
+    qDebug("ConnectionLost");
+}
+
 void MainWindow::setPage(Choice::ContentPage page)
 {
     if(page == Choice::CLIENT)
@@ -31,7 +60,9 @@ void MainWindow::setPage(Choice::ContentPage page)
             if(login.login() == Login::OK)
             {
                 _client = new Client(login.server(), login.port(), login.name(), this);
-                setCentralWidget(_client);
+                QObject::connect(_client, SIGNAL(serverError()),           this, SLOT(serverError()));
+                QObject::connect(_client, SIGNAL(connectionEstablished()), this, SLOT(connectionEstablished()));
+                QObject::connect(_client, SIGNAL(connectionLost()),        this, SLOT(connectionLost()));
             }
 
         }
