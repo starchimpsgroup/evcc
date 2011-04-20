@@ -14,25 +14,47 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0" colspan="2">
+    <widget class="QListWidget" name="userList"/>
+   </item>
    <item row="1" column="0">
     <widget class="QPushButton" name="call">
      <property name="text">
-      <string>Call</string>
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="Resouces/resouces.qrc">
+       <normaloff>:/phones/greenPhone.png</normaloff>:/phones/greenPhone.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>18</width>
+       <height>18</height>
+      </size>
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="1" column="1">
     <widget class="QPushButton" name="endCall">
      <property name="text">
-      <string>End Call</string>
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="Resouces/resouces.qrc">
+       <normaloff>:/phones/redPhone.png</normaloff>:/phones/redPhone.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>18</width>
+       <height>18</height>
+      </size>
      </property>
     </widget>
-   </item>
-   <item row="0" column="0">
-    <widget class="QListView" name="listView"/>
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="Resouces/resouces.qrc"/>
+ </resources>
  <connections/>
 </ui>

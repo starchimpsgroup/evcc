@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>231</width>
-    <height>130</height>
+    <height>81</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Qt Encrypted Voice Chat Client</string>
+   <string>Encrypted Voice Chat</string>
   </property>
   <widget class="QWidget" name="centralWidget"/>
   <widget class="QMenuBar" name="menuBar">

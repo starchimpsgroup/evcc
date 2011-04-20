@@ -19,7 +19,7 @@ ServerConnection::ServerConnection(quint16 port, QHostAddress host, QObject* par
     //connect( this, SIGNAL(newConnection()), this, SLOT(send()) );
 };
 
-bool ServerConnection::isNameExistent(QString name)
+User * ServerConnection::getUserByName(QString name)
 {
     if(!_users.isEmpty())
     {
@@ -29,13 +29,16 @@ bool ServerConnection::isNameExistent(QString name)
             i.next();
 
             if(i.value()->name() == name)
-            {
-                return true;
-            }
+                return i.value();
         }
     }
 
-    return false;
+    return NULL;
+}
+
+bool ServerConnection::isNameExistent(QString name)
+{
+    return _usernames.contains(name);
 }
 
 void ServerConnection::incomingConnection ( int socketDescriptor )
@@ -56,6 +59,33 @@ void ServerConnection::incomingConnection ( int socketDescriptor )
     u->send();
 }
 
+void ServerConnection::usernames()
+{
+    if(!_users.isEmpty())
+    {
+        QHashIterator<QTcpSocket*, User*> u(_users);
+
+        while (u.hasNext())
+        {
+            u.next();
+            QDataStream &out = *u.value()->outputDataStream();
+            out << connectionTyp(ServerConnectionTyps::USERNAMES) << (quint32)_users.size();
+            //qDebug(qPrintable("to: " + u.value()->name()));
+
+            QHashIterator<QTcpSocket*, User*> i(_users);
+            while (i.hasNext())
+            {
+                i.next();
+
+                out << i.value()->name() << i.value()->publicKey();
+                //qDebug(qPrintable("user: " + i.value()->name() + " " + i.value()->publicKey()));
+            }
+
+            u.value()->send();
+        }
+    }
+}
+
 void ServerConnection::socketReadyRead()
 {
     QTcpSocket * socket = (QTcpSocket *)QObject::sender();
@@ -67,7 +97,7 @@ void ServerConnection::socketReadyRead()
     in.setVersion(QDataStream::Qt_4_0);
 
     //if (blockSize == 0) {
-    if (socket->bytesAvailable() < (int)sizeof(quint32))
+    if (socket->bytesAvailable() < (int)sizeof(qint32))
         return;
 
     in >> blockSize;
@@ -77,45 +107,116 @@ void ServerConnection::socketReadyRead()
         return;
 
     qint32 typ;
-    in >> typ;
-
-    switch((ServerConnectionTyps::ConnectionTyp)typ)
+    while(!in.atEnd())
     {
-    case ServerConnectionTyps::USERNAMES:
-        out << connectionTyp(ServerConnectionTyps::USERNAMES) << (quint32)_users.size();
 
-        if(!_users.isEmpty())
+        in >> typ;
+
+        switch((ServerConnectionTyps::ConnectionTyp)typ)
         {
-            QHashIterator<QTcpSocket*, User*> i(_users);
-            while (i.hasNext())
+        case ServerConnectionTyps::USERNAMES:
+        {
+            out << connectionTyp(ServerConnectionTyps::USERNAMES) << (quint32)_users.size();
+
+            if(!_users.isEmpty())
             {
-                i.next();
+                QHashIterator<QTcpSocket*, User*> i(_users);
+                while (i.hasNext())
+                {
+                    i.next();
 
-                out << i.value()->name() << i.value()->publicKey();
+                    out << i.value()->name() << i.value()->publicKey();
+                }
             }
+            u->send();
+            break;
         }
-
-        break;
-
-    case ServerConnectionTyps::USERNAME:
-
-        QString name;
-        in >> name;
-
-        if(isNameExistent(name))
+        case ServerConnectionTyps::USERNAME:
         {
-            out << connectionTyp(ServerConnectionTyps::USERNAMEDENIED);
-            // socketDisconnected
+            QString name, key;
+            in >> name >> key;
+
+            if(isNameExistent(name))
+            {
+                out << connectionTyp(ServerConnectionTyps::USERNAMEDENIED);
+                u->send();
+                // socketDisconnected
+            }
+            else
+            {
+                out << connectionTyp(ServerConnectionTyps::USERNAMEACCEPTED);
+                u->send();
+
+                u->setData(name, key);
+                _usernames.append(name);
+                usernames();
+            }
+            break;
         }
-        else
+        case ServerConnectionTyps::CALL:
         {
-            out << connectionTyp(ServerConnectionTyps::USERNAMEACCEPTED);
-            u->setName(name);
+            QString name;
+
+            in >> name;
+
+            if(isNameExistent(name) && !getUserByName(name)->isCalling())
+            {
+                out << connectionTyp(ServerConnectionTyps::CALLACCEPTED);
+                getUserByName(name)->setCalling( u );
+                u->setCalling( getUserByName(name) );
+
+                *getUserByName(name)->outputDataStream() << connectionTyp(ServerConnectionTyps::CALL) << name;
+                getUserByName(name)->send();
+
+                emit message(tr("CallAccepted: ") + u->name() + " >> "
+                             + name, ServerMessages::TEXT);
+            }
+            else
+            {
+                out << connectionTyp(ServerConnectionTyps::CALLDENIED);
+                emit message(tr("CallDenied: ") + u->name() + " >> "
+                             + name, ServerMessages::TEXT);
+            }
+
+            u->send();
+            break;
         }
-        break;
+        case ServerConnectionTyps::CALLEND:
+        {
+            callEnd(u);
+            break;
+        }
+        case ServerConnectionTyps::CALLDENIED:
+        {
+            //callcancanceld
+            break;
+        }
+        case ServerConnectionTyps::CALLACCEPTED:
+        {
+            // calletablished
+            break;
+        }
+        default:
+            emit message(tr("Undefined connection typ"), ServerMessages::ERROR);
+            return;
+        }
+
     }
+}
 
-    u->send();
+void ServerConnection::callEnd(User * u)
+{
+    if(u->isCalling())
+    {
+        *u->partner()->outputDataStream() << connectionTyp(ServerConnectionTyps::CALLEND);
+        u->partner()->send();
+
+        *u->outputDataStream() << connectionTyp(ServerConnectionTyps::CALLEND);
+        u->send();
+
+        u->partner()->endCalling();
+        u->endCalling();
+    }
 }
 
 void ServerConnection::socketDisconnected()
@@ -126,28 +227,10 @@ void ServerConnection::socketDisconnected()
     emit message(tr("Diconnected: ") + socket->peerAddress().toString() + ":"
                                      + QString::number(socket->peerPort()), ServerMessages::SEND);
 
+    callEnd(u);
+
+    _usernames.removeOne(u->name());
+    usernames();
     delete u;
-    delete socket;
+    //delete socket;
 }
-
-/*void ServerConnection::send()
-{
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_4_0);
-
-    out << (quint16)0;
-    out << QString("test123456");
-    out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
-
-    QTcpSocket * clientConnection = this->nextPendingConnection();
-    emit message(tr("Send: ") + clientConnection->localAddress().toString() + ":"
-                              + QString::number(clientConnection->localPort()) + " -> "
-                              + clientConnection->peerAddress().toString() + ":"
-                              + QString::number(clientConnection->peerPort()), ServerMessages::SEND);
-    connect(clientConnection, SIGNAL(disconnected()), clientConnection, SLOT(deleteLater()));
-
-    clientConnection->write(block);
-    clientConnection->disconnectFromHost();
-}*/

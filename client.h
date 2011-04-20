@@ -27,6 +27,7 @@ public:
     void startAudioOutput();
 
     QAudioDeviceInfo audioDeviceByName( QString name, QAudio::Mode mode );
+    QAudioFormat format(){ return _format; }
 
 private:
     QAudioFormat _format;
@@ -44,13 +45,11 @@ private slots:
     void on_call_clicked();
     void on_endCall_clicked();
     void showMessage(QString, ServerMessages::MessageTyp);
-    void connectionEstablishedForward(){ emit connectionEstablished(); }
-    void connectionLostForward()       { emit connectionLost(); }
+    void userListRefresh();
 
 signals:
     void serverError();
-    void connectionEstablished();
-    void connectionLost();
+    void setStatusBarText(QString);
 
 private:
     Ui::Client *ui;

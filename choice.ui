@@ -17,19 +17,41 @@
    <item row="0" column="0">
     <widget class="QPushButton" name="client">
      <property name="text">
-      <string>Client</string>
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="Resouces/resouces.qrc">
+       <normaloff>:/buttons/client.png</normaloff>:/buttons/client.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>74</width>
+       <height>9</height>
+      </size>
      </property>
     </widget>
    </item>
    <item row="1" column="0">
     <widget class="QPushButton" name="server">
      <property name="text">
-      <string>Server</string>
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="Resouces/resouces.qrc">
+       <normaloff>:/buttons/server.png</normaloff>:/buttons/server.png</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>74</width>
+       <height>9</height>
+      </size>
      </property>
     </widget>
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="Resouces/resouces.qrc"/>
+ </resources>
  <connections/>
 </ui>

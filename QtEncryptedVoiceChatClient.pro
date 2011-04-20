@@ -23,7 +23,9 @@ SOURCES += main.cpp\
     serverconnection.cpp \
     clientconnection.cpp \
     user.cpp \
-    serverconnectiontyps.cpp
+    serverconnectiontyps.cpp \
+    playfile.cpp \
+    loadsplash.cpp
 
 HEADERS  += mainwindow.h \
             audioinput.h \
@@ -37,7 +39,9 @@ HEADERS  += mainwindow.h \
     serverconnection.h \
     clientconnection.h \
     user.h \
-    serverconnectiontyps.h
+    serverconnectiontyps.h \
+    playfile.h \
+    loadsplash.h
 
 FORMS    += mainwindow.ui \
             client.ui \
@@ -46,3 +50,6 @@ FORMS    += mainwindow.ui \
     login.ui
 
 OTHER_FILES += README.markdown
+
+RESOURCES += \
+    Resouces/resouces.qrc

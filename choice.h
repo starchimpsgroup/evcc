@@ -18,7 +18,7 @@ public:
     typedef enum ContentPage
     {
         CLIENT,                            //!< Client
-        SERVER,                            //!< Server
+        SERVER                             //!< Server
 
     }
     ContentPage;

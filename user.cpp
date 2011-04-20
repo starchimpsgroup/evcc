@@ -2,8 +2,14 @@
 
 User::User(QTcpSocket * socket)// : _outputDataStream(&_byteArray, QIODevice::WriteOnly)
 {
-    _socket = socket;
+    _calling = false;
+    _socket  = socket;
     newStream();
+}
+
+User::~User()
+{
+    delete _outputDataStream;
 }
 
 void User::newStream()
@@ -20,5 +26,6 @@ void User::send()
 
     _socket->write(_byteArray);
     delete _outputDataStream;
+    _byteArray.clear();
     newStream();
 }

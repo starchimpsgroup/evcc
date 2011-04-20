@@ -4,6 +4,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QHostAddress>
+#include <QStringList>
 #include "servermessages.h"
 #include "serverconnectiontyps.h"
 #include "user.h"
@@ -14,7 +15,7 @@ class ServerConnection : public QTcpServer
 
 public:
     ServerConnection(quint16 port, QHostAddress host = QHostAddress::Any, QObject* parent = 0);
-    void serverStatus(){ emit message(_serverStatus, _serverStatusTyp); };
+    void serverStatus(){ emit message(_serverStatus, _serverStatusTyp); }
 
 private:
     QHostAddress               _hostAddress;
@@ -23,11 +24,15 @@ private:
     ServerMessages::MessageTyp _serverStatusTyp;
 
     QHash<QTcpSocket*, User*>  _users;
+    QStringList                _usernames;
 
 private:
     void incomingConnection ( int socketDescriptor );
     bool isNameExistent(QString name);
+    User * getUserByName(QString name);
     qint32 connectionTyp(ServerConnectionTyps::ConnectionTyp t){ return (qint32)t; }
+    void usernames();
+    void callEnd(User * u);
 
 private slots:
     void socketReadyRead();

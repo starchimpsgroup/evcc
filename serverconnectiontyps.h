@@ -14,6 +14,10 @@ public:
         USERNAMEACCEPTED,
         USERNAMEDENIED,
         USERNAMES,
+        CALL,
+        CALLACCEPTED,
+        CALLDENIED,
+        CALLEND,
     }
     ConnectionTyp;
 

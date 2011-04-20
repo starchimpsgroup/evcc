@@ -1,0 +1,27 @@
+<RCC>
+    <qresource prefix="/logos">
+        <file>clientLogo.png</file>
+        <file>serverLogo.png</file>
+        <file>logoShow0.png</file>
+        <file>logoShow1.png</file>
+        <file>logoShow2.png</file>
+        <file>logoShow3.png</file>
+        <file>logoShow4.png</file>
+        <file>logoShow5.png</file>
+        <file>logoShow6.png</file>
+        <file>logoShow7.png</file>
+    </qresource>
+    <qresource prefix="/sounds">
+        <file>offhook.wav</file>
+        <file>ring.wav</file>
+        <file>ringph.wav</file>
+    </qresource>
+    <qresource prefix="/buttons">
+        <file>client.png</file>
+        <file>server.png</file>
+    </qresource>
+    <qresource prefix="/phones">
+        <file>greenPhone.png</file>
+        <file>redPhone.png</file>
+    </qresource>
+</RCC>

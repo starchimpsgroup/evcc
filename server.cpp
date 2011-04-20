@@ -11,6 +11,11 @@ Server::Server(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    ui->textEdit->setStyleSheet("background-color: white;"
+                                "background-image: url(:/logos/serverLogo.png);"
+                                "background-repeat: none;"
+                                "background-position: center;");
+
     QString ipAddress;
     QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
     // use the first non-localhost IPv4 address
@@ -58,4 +63,9 @@ void Server::addMessage(QString text, ServerMessages::MessageTyp typ)
     }
 
     ui->textEdit->setText(_serverLog);
+
+    QTextCursor c = ui->textEdit->textCursor();
+    c.movePosition(QTextCursor::End);
+    ui->textEdit->setTextCursor(c);
+
 }

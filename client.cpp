@@ -8,26 +8,36 @@ Client::Client(QString server, quint16 port, QString userName, QWidget *parent) 
 {
     ui->setupUi(this);
 
+    ui->userList->setStyleSheet("background-color: white;"
+                                "background-image: url(:/logos/clientLogo.png);"
+                                "background-repeat: none;"
+                                "background-position: center;");
+
     _server = server;
     _port   = port;
 
-    _connection = new ClientConnection(server, port, userName);
+    _connection = new ClientConnection(server, port, userName, this);
 
     QObject::connect(_connection,
                      SIGNAL(message(QString,ServerMessages::MessageTyp)),
                      this,
                      SLOT(showMessage(QString,ServerMessages::MessageTyp)));
 
-    QObject::connect(_connection, SIGNAL(connectionEstablished()), this, SLOT(connectionEstablishedForward()));
-    QObject::connect(_connection, SIGNAL(connectionLost()),        this, SLOT(connectionLostForward()));
+    QObject::connect(_connection, SIGNAL(connectionEstablished()), this->parent(), SLOT(connectionEstablished()));
+    QObject::connect(_connection, SIGNAL(connectionLost()),        this->parent(), SLOT(connectionLost()));
+    QObject::connect(_connection, SIGNAL(userListRefresh()),       this, SLOT(userListRefresh()));
+    QObject::connect(_connection, SIGNAL(callOut(QString)),        this->parent(), SLOT(callOut(QString)));
+    QObject::connect(_connection, SIGNAL(callIn(QString)),         this->parent(), SLOT(callIn(QString)));
+    QObject::connect(_connection, SIGNAL(callDenied(QString)),     this->parent(), SLOT(callDenied(QString)));
+    QObject::connect(_connection, SIGNAL(callTerminated()),        this->parent(), SLOT(callTerminated()));
 
     // Set up the format, eg.
     _format.setFrequency(8000); // 44100 8000
     _format.setChannels(1);
-    _format.setSampleSize(16);
+    _format.setSampleSize(8); // 16
     _format.setCodec("audio/pcm");
     _format.setByteOrder(QAudioFormat::LittleEndian);
-    _format.setSampleType(QAudioFormat::SignedInt);
+    _format.setSampleType(QAudioFormat::UnSignedInt); // SignedInt
 
     _audioInputVector  = new QVector<QByteArray>();
     _audioOutputVector = new QVector<QByteArray>();
@@ -52,17 +62,20 @@ Client::~Client()
 
 void Client::on_call_clicked()
 {
-    stopAudioInput();
+    if(ui->userList->currentItem())
+        _connection->call(ui->userList->currentItem()->text());
+    /*stopAudioInput();
     startAudioInput();
 
     stopAudioOutput();
-    startAudioOutput();
+    startAudioOutput();*/
 }
 
 void Client::on_endCall_clicked()
 {
-    stopAudioInput();
-    stopAudioOutput();
+    _connection->callEnd();
+    /*stopAudioInput();
+    stopAudioOutput();*/
 }
 
 void Client::stopAudioInput()
@@ -117,8 +130,7 @@ QAudioDeviceInfo Client::audioDeviceByName( QString name, QAudio::Mode mode )
     {
         return QAudioDeviceInfo::defaultInputDevice();
     }
-
-    if( mode == QAudio::AudioOutput )
+    else if( mode == QAudio::AudioOutput )
     {
         return QAudioDeviceInfo::defaultOutputDevice();
     }
@@ -131,14 +143,34 @@ void Client::showMessage(QString text, ServerMessages::MessageTyp typ)
     switch(typ)
     {
     case ServerMessages::INFORMATION:
+    {
         QMessageBox::information(this, tr("Information"),
                                  text);
         break;
-
+    }
     case ServerMessages::ERROR:
-        QMessageBox::information(this, tr("Error"),
+    {
+        QMessageBox::critical(this, tr("Error"),
                                  text);
         emit serverError();
         break;
     }
+    case ServerMessages::WARNING:
+    {
+        QMessageBox::warning(this, tr("Warning"),
+                                 text);
+        break;
+    }
+    default:
+    {
+    }
+    }
+}
+
+void Client::userListRefresh()
+{
+    QList<QString> users = _connection->users();
+    ui->userList->clear();
+    while (!users.isEmpty())
+        ui->userList->addItem( users.takeFirst() );
 }

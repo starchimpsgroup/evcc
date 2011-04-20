@@ -7,26 +7,37 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    ui->setupUi(this);
+
+    _playRing    = new PlayFile(":/sounds/ring.wav");
+    _playRingPH  = new PlayFile(":/sounds/ringph.wav");
+    _playOffHook = new PlayFile(":/sounds/offhook.wav");
+
+    setChoice();
+}
+
+MainWindow::~MainWindow()
+{
+    delete _playRing;
+    delete _playRingPH;
+    delete _playOffHook;
+    delete ui;
+}
+
+void MainWindow::setChoice()
+{
+    ui->statusBar->clearMessage();
+
     _choice = new Choice(this);
     QObject::connect(_choice, SIGNAL(changeContent(Choice::ContentPage)), this, SLOT(setPage(Choice::ContentPage)));
 
     setCentralWidget(_choice);
 }
 
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
-
 void MainWindow::serverError()
 {
-    setCentralWidget(_choice);
-
-    QObject * sender = QObject::sender();
-    sender->disconnect();
-
-    delete sender;
-
+    stopSound();
+    setChoice();
     qDebug("ServerError");
 }
 
@@ -37,14 +48,40 @@ void MainWindow::connectionEstablished()
 
 void MainWindow::connectionLost()
 {
-    setCentralWidget(_choice);
-
-    QObject * sender = QObject::sender();
-    sender->disconnect();
-
-    delete sender;
-
+    stopSound();
+    setChoice();
     qDebug("ConnectionLost");
+}
+
+void MainWindow::stopSound()
+{
+    _playRing->stop();
+    _playRingPH->stop();
+    _playOffHook->stop();
+}
+
+void MainWindow::callOut(QString name)
+{
+    ui->statusBar->showMessage("Calling " + name + "...");
+    _playRingPH->play();
+}
+
+void MainWindow::callIn(QString name)
+{
+    ui->statusBar->showMessage("Calling " + name + "...");
+    _playRing->play();
+}
+
+void MainWindow::callDenied(QString name)
+{
+    ui->statusBar->showMessage(name + " is calling...");
+    _playOffHook->play();
+}
+
+void MainWindow::callTerminated()
+{
+    ui->statusBar->showMessage("Call Terminated");
+    stopSound();
 }
 
 void MainWindow::setPage(Choice::ContentPage page)
@@ -60,9 +97,7 @@ void MainWindow::setPage(Choice::ContentPage page)
             if(login.login() == Login::OK)
             {
                 _client = new Client(login.server(), login.port(), login.name(), this);
-                QObject::connect(_client, SIGNAL(serverError()),           this, SLOT(serverError()));
-                QObject::connect(_client, SIGNAL(connectionEstablished()), this, SLOT(connectionEstablished()));
-                QObject::connect(_client, SIGNAL(connectionLost()),        this, SLOT(connectionLost()));
+                QObject::connect(_client, SIGNAL(serverError()), this, SLOT(serverError()));
             }
 
         }
