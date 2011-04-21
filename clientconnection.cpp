@@ -3,7 +3,7 @@
 ClientConnection::ClientConnection(QString server, quint16 port, QString userName, QObject *parent) :
     QObject(parent)
 {
-    //_error  = false;
+    _state  = ClientConnection::IDLE;
 
     _server = server;
     _port   = port;
@@ -33,6 +33,7 @@ void ClientConnection::disconnected()
 
 void ClientConnection::call(QString name)
 {
+    _state  = ClientConnection::CALLING;
     _userCalling = name;
     *_user->outputDataStream() << connectionTyp(ServerConnectionTyps::CALL) << name;
     _user->send();

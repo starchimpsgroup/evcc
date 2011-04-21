@@ -13,10 +13,10 @@ int main(int argc, char *argv[])
 
     QSplashScreen splash(pixmap0);
     splash.setMask(pixmap0.mask());
-    splash.show();*/
+    splash.show();
 
-    //LoadSplash  * loadSplash = new LoadSplash( &splash, 70 );
-    //loadSplash->start();
+    LoadSplash  * loadSplash = new LoadSplash( &splash, 70 );
+    loadSplash->start();*/
 
     MainWindow w;
     w.show();

@@ -25,14 +25,18 @@ public:
     }
     ConnectionState;
 
+    ClientConnection::ConnectionState state(){ return _state; }
+
 private:
     QTcpSocket * _socket;
     QString      _server;
     quint16      _port;
-    User       * _user;
+
+    User                  * _user;
     QHash<QString, QString> _users; // name, key
-    QString      _userCalling;
-    //bool         _error;
+    QString                 _userCalling;
+
+    ClientConnection::ConnectionState _state;
 
 private:
     qint32 connectionTyp(ServerConnectionTyps::ConnectionTyp t){ return (qint32)t; }
