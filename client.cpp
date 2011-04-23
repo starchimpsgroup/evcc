@@ -1,6 +1,7 @@
 #include "client.h"
 #include "ui_client.h"
 #include <QMessageBox>
+#include <QMutex>
 
 Client::Client(QString server, quint16 port, QString userName, QWidget *parent) :
     QWidget(parent),
@@ -18,41 +19,47 @@ Client::Client(QString server, quint16 port, QString userName, QWidget *parent) 
 
     _connection = new ClientConnection(server, port, userName, this);
 
+    _callEstablished = false;
+
     QObject::connect(_connection,
                      SIGNAL(message(QString,ServerMessages::MessageTyp)),
                      this,
                      SLOT(showMessage(QString,ServerMessages::MessageTyp)));
 
     QObject::connect(_connection, SIGNAL(connectionEstablished()), this->parent(), SLOT(connectionEstablished()));
-    QObject::connect(_connection, SIGNAL(connectionLost()),        this->parent(), SLOT(connectionLost()));
-    QObject::connect(_connection, SIGNAL(userListRefresh()),       this, SLOT(userListRefresh()));
+    QObject::connect(_connection, SIGNAL(userListRefresh()),       this,           SLOT(userListRefresh()));
     QObject::connect(_connection, SIGNAL(callOut(QString)),        this->parent(), SLOT(callOut(QString)));
     QObject::connect(_connection, SIGNAL(callIn(QString)),         this->parent(), SLOT(callIn(QString)));
     QObject::connect(_connection, SIGNAL(callDenied(QString)),     this->parent(), SLOT(callDenied(QString)));
     QObject::connect(_connection, SIGNAL(callTerminated()),        this->parent(), SLOT(callTerminated()));
+    QObject::connect(_connection, SIGNAL(callEstablished()),       this,           SLOT(callEstablished()));
+    QObject::connect(_connection, SIGNAL(callTerminated()),        this,           SLOT(callTerminated()));
+    QObject::connect(_connection, SIGNAL(callEstablished()),       this->parent(), SLOT(callEstablished()));
+    QObject::connect(_connection, SIGNAL(receivedSoundData(QByteArray)), this,     SLOT(receivedSoundData(QByteArray)));
 
     // Set up the format, eg.
     _format.setFrequency(8000); // 44100 8000
     _format.setChannels(1);
-    _format.setSampleSize(8); // 16
+    //_format.setSampleSize(8); // 16
+    _format.setSampleSize(16);
     _format.setCodec("audio/pcm");
     _format.setByteOrder(QAudioFormat::LittleEndian);
-    _format.setSampleType(QAudioFormat::UnSignedInt); // SignedInt
+    //_format.setSampleType(QAudioFormat::UnSignedInt); // SignedInt
+    _format.setSampleType(QAudioFormat::SignedInt);
 
-    _audioInputVector  = new QVector<QByteArray>();
-    _audioOutputVector = new QVector<QByteArray>();
+    _audioInputList  = new QList<QByteArray>();
+    _audioOutputList = new QList<QByteArray>();
 
-    _audioInput  = new AudioInput ( _format, audioDeviceByName("pulse", QAudio::AudioInput  ), _audioInputVector);
-    _audioOutput = new AudioOutput( _format, audioDeviceByName("pulse", QAudio::AudioOutput ), _audioInputVector);
+    _audioInput  = new AudioInput ( _format, audioDeviceByName("pulse", QAudio::AudioInput  ), _audioInputList);
+    _audioOutput = new AudioOutput( _format, audioDeviceByName("pulse", QAudio::AudioOutput ), _audioOutputList);
 }
 
 Client::~Client()
 {
-    stopAudioInput();
-    stopAudioOutput();
+    callTerminated();
 
-    delete _audioInputVector;
-    delete _audioOutputVector;
+    delete _audioInputList;
+    delete _audioOutputList;
     delete _audioInput;
     delete _audioOutput;
     delete _connection;
@@ -62,33 +69,70 @@ Client::~Client()
 
 void Client::on_call_clicked()
 {
-    if(ui->userList->currentItem())
-        _connection->call(ui->userList->currentItem()->text());
-    /*stopAudioInput();
-    startAudioInput();
-
-    stopAudioOutput();
-    startAudioOutput();*/
+    if(_connection->state() == ClientConnection::IDLE)
+    {
+        if(ui->userList->currentItem())
+            _connection->call(ui->userList->currentItem()->text());
+    }
+    else if(_connection->state() == ClientConnection::INCOMINGCALL)
+    {
+        _connection->callAccept();
+    }
 }
 
 void Client::on_endCall_clicked()
 {
-    _connection->callEnd();
-    /*stopAudioInput();
-    stopAudioOutput();*/
+    if(_connection->state() == ClientConnection::INCOMINGCALL || _connection->state() == ClientConnection::CALLING)
+    {
+        _connection->callEnd();
+    }
+}
+
+void Client::callEstablished()
+{
+    _callEstablished = true;
+
+    stopAudioInput();
+    startAudioInput();
+
+    stopAudioOutput();
+    startAudioOutput();
+
+    _dataThread = new OutputDataThread(_connection, _audioInputList);
+    QObject::connect( _dataThread, SIGNAL( finished() ), this, SLOT( finishedThread() ) );
+
+    _dataThread->start();
+}
+
+void Client::receivedSoundData(QByteArray data)
+{
+    _audioOutputList->append(data);
+}
+
+void Client::callTerminated()
+{
+    if(_callEstablished)
+    {
+        _callEstablished = false;
+
+        stopAudioInput();
+        stopAudioOutput();
+
+        _dataThread->stop();
+    }
 }
 
 void Client::stopAudioInput()
 {
     _audioInput->stop();
-    _audioInputVector->clear();
+    _audioInputList->clear();
 
     qDebug("record stop");
 }
 
 void Client::startAudioInput()
 {
-    _audioInputVector->clear();
+    _audioInputList->clear();
     _audioInput->start();
 
     qDebug("record start");
@@ -97,14 +141,14 @@ void Client::startAudioInput()
 void Client::stopAudioOutput()
 {
     _audioOutput->stop();
-    _audioOutputVector->clear();
+    _audioOutputList->clear();
 
     qDebug("play stop");
 }
 
 void Client::startAudioOutput()
 {
-    _audioOutputVector->clear();
+    _audioOutputList->clear();
     _audioOutput->start();
 
     qDebug("play start");
@@ -150,8 +194,10 @@ void Client::showMessage(QString text, ServerMessages::MessageTyp typ)
     }
     case ServerMessages::ERROR:
     {
+        callTerminated();
         QMessageBox::critical(this, tr("Error"),
                                  text);
+
         emit serverError();
         break;
     }
@@ -173,4 +219,39 @@ void Client::userListRefresh()
     ui->userList->clear();
     while (!users.isEmpty())
         ui->userList->addItem( users.takeFirst() );
+}
+
+void Client::finishedThread()
+{
+    QObject * sender = QObject::sender();
+    sender->disconnect();
+
+    delete sender;
+}
+
+OutputDataThread::OutputDataThread(ClientConnection * connection, QList<QByteArray> * byteList)
+{
+    _byteList   = byteList;
+    _exitThread = false;
+    _connection = connection;
+}
+
+void OutputDataThread::run()
+{
+    _byteList->clear();
+
+    QMutex mutex;
+    while(!_exitThread)
+    {
+        mutex.lock();
+        if(!_byteList->isEmpty())
+        {
+            _connection->sendAudioData(_byteList->takeFirst());
+        }
+        mutex.unlock();
+    }
+
+    return;
+
+    exec();
 }

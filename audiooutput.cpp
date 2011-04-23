@@ -1,8 +1,8 @@
 #include "audiooutput.h"
 #include "QMutex"
 
-AudioOutput::AudioOutput(QAudioFormat format, QAudioDeviceInfo device, QVector<QByteArray> * byteVector) :
-                   Audio(format, device, byteVector, QAudio::AudioOutput)
+AudioOutput::AudioOutput(QAudioFormat format, QAudioDeviceInfo device, QList<QByteArray> * byteList) :
+                   Audio(format, device, byteList, QAudio::AudioOutput)
 {
     _audioThread = NULL;
 }
@@ -19,7 +19,7 @@ void AudioOutput::start()
         _format = _device.nearestFormat(_format);
     }
 
-    _byteVector->clear();
+    _byteList->clear();
     _byteArray = new QByteArray();
 
     init();
@@ -35,7 +35,7 @@ void AudioOutput::init()
     _ioDevice->open(QIODevice::ReadWrite);
     _audioOutput->start(_ioDevice);
 
-    _audioThread = new AudioOutputDataThread(_audioOutput, _ioDevice, _byteArray, _byteVector);
+    _audioThread = new AudioOutputDataThread(_audioOutput, _ioDevice, _byteArray, _byteList);
     QObject::connect( _audioThread, SIGNAL( finished() ), this, SLOT( finishedThread() ) );
 
     _audioThread->start();
@@ -63,7 +63,7 @@ void AudioOutput::finishedAudio(QAudio::State state)
 
         emit finished();
 
-        qDebug("finishedAudio");
+        //qDebug("finishedAudio");
     }
 }
 
@@ -79,14 +79,14 @@ void AudioOutput::finishedThread()
 
     delete sender;
 
-    qDebug("finishedThread");
+    //qDebug("finishedThread");
 }
 
-AudioOutputDataThread::AudioOutputDataThread(QAudioOutput * audioOutput, QIODevice * device, QByteArray * byteArray, QVector<QByteArray> * byteVector)
+AudioOutputDataThread::AudioOutputDataThread(QAudioOutput * audioOutput, QIODevice * device, QByteArray * byteArray, QList<QByteArray> * byteList)
 {
     _audioOutput = audioOutput;
     _byteArray   = byteArray;
-    _byteVector  = byteVector;
+    _byteList    = byteList;
     _device      = device;
     _exitThread  = false;
     _error       = false;
@@ -104,10 +104,9 @@ void AudioOutputDataThread::run()
         }
 
         mutex.lock();
-        if(!_byteVector->isEmpty())
+        if(!_byteList->isEmpty())
         {
-            _byteArray->append(_byteVector->first());
-            _byteVector->pop_front();
+            _byteArray->append(_byteList->takeFirst());
         }
         mutex.unlock();
     }

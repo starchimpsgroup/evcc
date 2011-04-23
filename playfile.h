@@ -9,7 +9,7 @@ class PlayFile : public QObject
 {
     Q_OBJECT
 public:
-    explicit PlayFile(QString file, QObject *parent = 0);
+    explicit PlayFile(QString file, bool loop = true, QObject *parent = 0);
     ~PlayFile();
     void play();
     void stop();
@@ -21,6 +21,7 @@ private:
     QByteArray     _file;
     QDataStream  * _stream;
     QIODevice    * _ioDevice;
+    bool           _loop;
 
 signals:
 

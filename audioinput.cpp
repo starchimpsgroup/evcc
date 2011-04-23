@@ -1,8 +1,8 @@
 #include "audioinput.h"
 #include <QMutex>
 
-AudioInput::AudioInput(QAudioFormat format, QAudioDeviceInfo device, QVector<QByteArray> * byteVector) :
-                 Audio(format, device, byteVector, QAudio::AudioInput)
+AudioInput::AudioInput(QAudioFormat format, QAudioDeviceInfo device, QList<QByteArray> * byteList) :
+                 Audio(format, device, byteList, QAudio::AudioInput)
 {
     _audioThread = NULL;
 }
@@ -23,7 +23,7 @@ void AudioInput::start()
 
     _ioDevice = _audioInput->start();
 
-    _audioThread = new AudioInputDataThread(_audioInput, _ioDevice, _byteVector);
+    _audioThread = new AudioInputDataThread(_audioInput, _ioDevice, _byteList);
     _audioThread->setParent(this);
     QObject::connect( _audioThread, SIGNAL( finished() ), this, SLOT( finishedThread() ) );
 
@@ -49,14 +49,14 @@ void AudioInput::finishedThread()
 
     delete sender;
 
-    qDebug("finishedThread");
+    //qDebug("finishedThread");
 }
 
-AudioInputDataThread::AudioInputDataThread(QAudioInput * audioInput, QIODevice * device, QVector<QByteArray> * byteVector)
+AudioInputDataThread::AudioInputDataThread(QAudioInput * audioInput, QIODevice * device, QList<QByteArray> * byteList)
 {
     _audioInput = audioInput;
     _device     = device;
-    _byteVector = byteVector;
+    _byteList   = byteList;
     _exitThread = false;
 }
 
@@ -67,7 +67,7 @@ void AudioInputDataThread::run()
     while(!_exitThread)
     {
         if(_audioInput->error() != 0)
-            qDebug(qPrintable("Input " + QString::number(_audioInput->error())));
+            qDebug(qPrintable("InputError " + QString::number(_audioInput->error())));
 
         mutex.lock();
         if( _audioInput->bytesReady() >= _audioInput->periodSize() )
@@ -75,7 +75,7 @@ void AudioInputDataThread::run()
             appendData = _device->read(_audioInput->periodSize());
             _device->seek(0);
 
-            _byteVector->append(appendData);
+            _byteList->append(appendData);
 
         }
         mutex.unlock();

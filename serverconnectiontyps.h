@@ -18,6 +18,8 @@ public:
         CALLACCEPTED,
         CALLDENIED,
         CALLEND,
+        CALLESTABLISHED,
+        AUDIODATA
     }
     ConnectionTyp;
 

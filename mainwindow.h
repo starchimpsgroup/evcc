@@ -37,12 +37,12 @@ private slots:
     void setPage(Choice::ContentPage page);
     void serverError();
     void connectionEstablished();
-    void connectionLost();
     void stopSound();
     void callOut(QString name);
     void callIn(QString name);
     void callDenied(QString name);
     void callTerminated();
+    void callEstablished();
 };
 
 #endif // MAINWINDOW_H

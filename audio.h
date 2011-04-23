@@ -11,7 +11,7 @@ class Audio : public QObject
 {
     Q_OBJECT
 public:
-    Audio(QAudioFormat format, QAudioDeviceInfo device, QVector<QByteArray> * byteVector, QAudio::Mode mode);
+    Audio(QAudioFormat format, QAudioDeviceInfo device, QList<QByteArray> * byteList, QAudio::Mode mode);
 
     virtual void start() = 0;
     virtual void stop()  = 0;
@@ -33,7 +33,7 @@ protected:
     QAudioFormat          _format;
     QAudioInput         * _audioInput;
     QAudioOutput        * _audioOutput;
-    QVector<QByteArray> * _byteVector;
+    QList<QByteArray>   * _byteList;
 
 protected slots:
     virtual void finishedThread();

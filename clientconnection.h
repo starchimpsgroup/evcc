@@ -16,6 +16,8 @@ public:
     QList<QString> users(){ return _users.keys(); }
     void call(QString name);
     void callEnd();
+    void callAccept();
+    void sendAudioData(QByteArray audioData);
 
     typedef enum ConnectionState
     {
@@ -44,18 +46,18 @@ private:
 signals:
     void message(QString, ServerMessages::MessageTyp);
     void connectionEstablished();
-    void connectionLost();
     void userListRefresh();
     void callOut(QString);
     void callIn(QString);
     void callDenied(QString);
     void callTerminated();
+    void callEstablished();
+    void receivedSoundData(QByteArray);
 
 public slots:
     void read();
     void displayError(QAbstractSocket::SocketError socketError);
     void disconnected();
-
 };
 
 #endif // CLIENTCONNECTION_H

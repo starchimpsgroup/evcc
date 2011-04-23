@@ -1,7 +1,7 @@
 #include "audio.h"
 #include "QMutex"
 
-Audio::Audio(QAudioFormat format, QAudioDeviceInfo device, QVector<QByteArray> * byteVector, QAudio::Mode mode)
+Audio::Audio(QAudioFormat format, QAudioDeviceInfo device, QList<QByteArray> * byteList, QAudio::Mode mode)
 {
     _format      = format;
     _device      = device;
@@ -9,7 +9,7 @@ Audio::Audio(QAudioFormat format, QAudioDeviceInfo device, QVector<QByteArray> *
     _audioInput  = NULL;
     _audioOutput = NULL;
 
-    _byteVector  = byteVector;
+    _byteList    = byteList;
 
     _mode        = mode;
 }
@@ -25,9 +25,9 @@ void Audio::finishedAudio(QAudio::State state)
 
         emit finished();
 
-        qDebug("finishedAudio");
+        //qDebug("finishedAudio");
     }
-    else if(state == QAudio::ActiveState)
+    /*else if(state == QAudio::ActiveState)
     {
         qDebug(qPrintable(typ() + " QAudio::ActiveState"));
     }
@@ -38,7 +38,7 @@ void Audio::finishedAudio(QAudio::State state)
     else if(state == QAudio::IdleState)
     {
         qDebug(qPrintable(typ() + " QAudio::IdleState"));
-    }
+    }*/
 }
 
 void Audio::finishedThread()
@@ -48,7 +48,7 @@ void Audio::finishedThread()
 
     delete sender;
 
-    qDebug("finishedThread");
+    //qDebug("finishedThread");
 }
 
 void Audio::initInput()

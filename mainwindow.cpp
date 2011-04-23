@@ -9,9 +9,9 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    _playRing    = new PlayFile(":/sounds/ring.wav");
     _playRingPH  = new PlayFile(":/sounds/ringph.wav");
-    _playOffHook = new PlayFile(":/sounds/offhook.wav");
+    _playRing    = new PlayFile(":/sounds/ring.wav");
+    _playOffHook = new PlayFile(":/sounds/offhook.wav", false);
 
     setChoice();
 }
@@ -46,13 +46,6 @@ void MainWindow::connectionEstablished()
     setCentralWidget(_client);
 }
 
-void MainWindow::connectionLost()
-{
-    stopSound();
-    setChoice();
-    qDebug("ConnectionLost");
-}
-
 void MainWindow::stopSound()
 {
     _playRing->stop();
@@ -81,6 +74,12 @@ void MainWindow::callDenied(QString name)
 void MainWindow::callTerminated()
 {
     ui->statusBar->showMessage("Call Terminated");
+    stopSound();
+}
+
+void MainWindow::callEstablished()
+{
+    ui->statusBar->showMessage("Call Established");
     stopSound();
 }
 

@@ -91,116 +91,132 @@ void ServerConnection::socketReadyRead()
     QTcpSocket * socket = (QTcpSocket *)QObject::sender();
     User * u = _users[socket];
 
-    quint32 blockSize;
     QDataStream in(socket);
     QDataStream &out = *u->outputDataStream();
     in.setVersion(QDataStream::Qt_4_0);
 
-    //if (blockSize == 0) {
-    if (socket->bytesAvailable() < (int)sizeof(qint32))
+    if (u->blockSize() == 0) {
+        if (socket->bytesAvailable() < (int)sizeof(qint32))
+            return;
+
+        in >> u->blockSize();
+    }
+
+    if (socket->bytesAvailable() < u->blockSize())
         return;
 
-    in >> blockSize;
-    //}
-
-    if (socket->bytesAvailable() < blockSize)
-        return;
+    u->blockSize() = 0;
 
     qint32 typ;
-    while(!in.atEnd())
+    in >> typ;
+
+    switch((ServerConnectionTyps::ConnectionTyp)typ)
     {
+    case ServerConnectionTyps::USERNAMES:
+    {
+        out << connectionTyp(ServerConnectionTyps::USERNAMES) << (quint32)_users.size();
 
-        in >> typ;
-
-        switch((ServerConnectionTyps::ConnectionTyp)typ)
+        if(!_users.isEmpty())
         {
-        case ServerConnectionTyps::USERNAMES:
-        {
-            out << connectionTyp(ServerConnectionTyps::USERNAMES) << (quint32)_users.size();
-
-            if(!_users.isEmpty())
+            QHashIterator<QTcpSocket*, User*> i(_users);
+            while (i.hasNext())
             {
-                QHashIterator<QTcpSocket*, User*> i(_users);
-                while (i.hasNext())
-                {
-                    i.next();
+                i.next();
 
-                    out << i.value()->name() << i.value()->publicKey();
-                }
+                out << i.value()->name() << i.value()->publicKey();
             }
+        }
+        u->send();
+        break;
+    }
+    case ServerConnectionTyps::USERNAME:
+    {
+        QString name, key;
+        in >> name >> key;
+
+        if(isNameExistent(name))
+        {
+            out << connectionTyp(ServerConnectionTyps::USERNAMEDENIED);
             u->send();
-            break;
+            // socketDisconnected
         }
-        case ServerConnectionTyps::USERNAME:
+        else
         {
-            QString name, key;
-            in >> name >> key;
-
-            if(isNameExistent(name))
-            {
-                out << connectionTyp(ServerConnectionTyps::USERNAMEDENIED);
-                u->send();
-                // socketDisconnected
-            }
-            else
-            {
-                out << connectionTyp(ServerConnectionTyps::USERNAMEACCEPTED);
-                u->send();
-
-                u->setData(name, key);
-                _usernames.append(name);
-                usernames();
-            }
-            break;
-        }
-        case ServerConnectionTyps::CALL:
-        {
-            QString name;
-
-            in >> name;
-
-            if(isNameExistent(name) && !getUserByName(name)->isCalling())
-            {
-                out << connectionTyp(ServerConnectionTyps::CALLACCEPTED);
-                getUserByName(name)->setCalling( u );
-                u->setCalling( getUserByName(name) );
-
-                *getUserByName(name)->outputDataStream() << connectionTyp(ServerConnectionTyps::CALL) << name;
-                getUserByName(name)->send();
-
-                emit message(tr("CallAccepted: ") + u->name() + " >> "
-                             + name, ServerMessages::TEXT);
-            }
-            else
-            {
-                out << connectionTyp(ServerConnectionTyps::CALLDENIED);
-                emit message(tr("CallDenied: ") + u->name() + " >> "
-                             + name, ServerMessages::TEXT);
-            }
-
+            out << connectionTyp(ServerConnectionTyps::USERNAMEACCEPTED);
             u->send();
-            break;
+
+            u->setData(name, key);
+            _usernames.append(name);
+            usernames();
         }
-        case ServerConnectionTyps::CALLEND:
+        break;
+    }
+    case ServerConnectionTyps::CALL:
+    {
+        QString name;
+
+        in >> name;
+
+        if(isNameExistent(name) && !getUserByName(name)->isCalling())
         {
-            callEnd(u);
-            break;
+            out << connectionTyp(ServerConnectionTyps::CALLACCEPTED);
+            getUserByName(name)->setCalling( u );
+            u->setCalling( getUserByName(name) );
+
+            *getUserByName(name)->outputDataStream() << connectionTyp(ServerConnectionTyps::CALL) << u->name();
+            getUserByName(name)->send();
+
+            emit message(tr("CallAccepted: ") + u->name() + " >> "
+                         + name, ServerMessages::TEXT);
         }
-        case ServerConnectionTyps::CALLDENIED:
+        else
         {
-            //callcancanceld
-            break;
-        }
-        case ServerConnectionTyps::CALLACCEPTED:
-        {
-            // calletablished
-            break;
-        }
-        default:
-            emit message(tr("Undefined connection typ"), ServerMessages::ERROR);
-            return;
+            out << connectionTyp(ServerConnectionTyps::CALLDENIED);
+            emit message(tr("CallDenied: ") + u->name() + " >> "
+                         + name, ServerMessages::TEXT);
         }
 
+        u->send();
+        break;
+    }
+    case ServerConnectionTyps::CALLEND:
+    {
+        callEnd(u);
+        break;
+    }
+        /*case ServerConnectionTyps::CALLDENIED:
+        {
+            //callcancanceled
+            break;
+        }*/
+    case ServerConnectionTyps::CALLACCEPTED:
+    {
+        if(u->isCalling())
+        {
+            *u->partner()->outputDataStream() << connectionTyp(ServerConnectionTyps::CALLESTABLISHED);
+            u->partner()->send();
+
+            *u->outputDataStream() << connectionTyp(ServerConnectionTyps::CALLESTABLISHED);
+            u->send();
+        }
+
+        break;
+    }
+    case ServerConnectionTyps::AUDIODATA:
+    {
+        if(u->isCalling())
+        {
+            QByteArray data;
+            in >> data;
+
+            *u->partner()->outputDataStream() << connectionTyp(ServerConnectionTyps::AUDIODATA) << data;
+            u->partner()->send();
+        }
+        break;
+    }
+    default:
+        emit message(tr("Undefined connection typ"), ServerMessages::ERROR);
+        return;
     }
 }
 

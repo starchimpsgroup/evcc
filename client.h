@@ -3,10 +3,24 @@
 
 #include <QWidget>
 #include <QAudioFormat>
+#include <QMap>
 #include "audioinput.h"
 #include "audiooutput.h"
-#include <QMap>
 #include "clientconnection.h"
+
+class OutputDataThread : public QThread
+{
+public:
+    OutputDataThread(ClientConnection * connection, QList<QByteArray> * byteList);
+
+    void run();
+    void stop() { _exitThread = true; }
+
+private:
+    bool                _exitThread;
+    QList<QByteArray> * _byteList;
+    ClientConnection  * _connection;
+};
 
 namespace Ui {
     class Client;
@@ -30,10 +44,12 @@ public:
     QAudioFormat format(){ return _format; }
 
 private:
-    QAudioFormat _format;
+    Ui::Client          * ui;
 
-    QVector<QByteArray> * _audioInputVector;
-    QVector<QByteArray> * _audioOutputVector;
+    QAudioFormat          _format;
+
+    QList<QByteArray>   * _audioInputList;
+    QList<QByteArray>   * _audioOutputList;
     AudioInput          * _audioInput;
     AudioOutput         * _audioOutput;
 
@@ -41,18 +57,25 @@ private:
     QString               _server;
     quint16               _port;
 
+    bool                  _callEstablished;
+
+    OutputDataThread    * _dataThread;
+
 private slots:
     void on_call_clicked();
     void on_endCall_clicked();
     void showMessage(QString, ServerMessages::MessageTyp);
     void userListRefresh();
+    void callEstablished();
+    void callTerminated();
+    void receivedSoundData(QByteArray);
 
 signals:
     void serverError();
     void setStatusBarText(QString);
 
-private:
-    Ui::Client *ui;
+protected slots:
+    virtual void finishedThread();
 };
 
 #endif // CLIENT_H

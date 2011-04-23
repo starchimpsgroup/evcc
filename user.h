@@ -27,6 +27,8 @@ public:
     void setCalling( User * partner ){ _calling = true; _callingPartner = partner; }
     void endCalling(){ _calling = false; }
 
+    quint32 &blockSize(){ return _blockSize; }
+
 private:
     void newStream();
 
@@ -39,6 +41,7 @@ private:
     QString       _publicKey;
     bool          _calling;
     User        * _callingPartner;
+    quint32       _blockSize;
 };
 
 #endif // USER_H

@@ -13,8 +13,8 @@
     </qresource>
     <qresource prefix="/sounds">
         <file>offhook.wav</file>
-        <file>ring.wav</file>
         <file>ringph.wav</file>
+        <file>ring.wav</file>
     </qresource>
     <qresource prefix="/buttons">
         <file>client.png</file>

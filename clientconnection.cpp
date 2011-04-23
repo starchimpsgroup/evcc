@@ -33,7 +33,6 @@ void ClientConnection::disconnected()
 
 void ClientConnection::call(QString name)
 {
-    _state  = ClientConnection::CALLING;
     _userCalling = name;
     *_user->outputDataStream() << connectionTyp(ServerConnectionTyps::CALL) << name;
     _user->send();
@@ -45,20 +44,36 @@ void ClientConnection::callEnd()
     _user->send();
 }
 
+void ClientConnection::callAccept()
+{
+    *_user->outputDataStream() << connectionTyp(ServerConnectionTyps::CALLACCEPTED);
+    _user->send();
+}
+
+void ClientConnection::sendAudioData(QByteArray audioData)
+{
+    //audioData = audioData.right(audioData.size()-44);
+    *_user->outputDataStream() << connectionTyp(ServerConnectionTyps::AUDIODATA) << audioData;
+    _user->send();
+}
+
 void ClientConnection::read()
 {
-    quint32 blockSize;
     QDataStream in(_socket);
     QDataStream &out = *_user->outputDataStream();
     in.setVersion(QDataStream::Qt_4_0);
 
-    if (_socket->bytesAvailable() < (int)sizeof(qint32))
+    if (_user->blockSize() == 0) {
+        if (_socket->bytesAvailable() < (int)sizeof(qint32))
+            return;
+
+        in >> _user->blockSize();
+    }
+
+    if (_socket->bytesAvailable() < _user->blockSize())
         return;
 
-    in >> blockSize;
-
-    if (_socket->bytesAvailable() < blockSize)
-        return;
+    _user->blockSize() = 0;
 
     qint32 typ;
     in >> typ;
@@ -104,32 +119,50 @@ void ClientConnection::read()
     }
     case ServerConnectionTyps::CALLEND:
     {
+        _state  = ClientConnection::IDLE;
         // if partner/server terminates
         emit callTerminated();
         break;
     }
     case ServerConnectionTyps::CALLACCEPTED:
     {
+        _state  = ClientConnection::CALLING;
         // wait for calletablished
         emit callOut(_userCalling);
         break;
     }
     case ServerConnectionTyps::CALLDENIED:
     {
+        _state  = ClientConnection::IDLE;
         // if partner is calling
         emit callDenied(_userCalling);
         break;
     }
     case ServerConnectionTyps::CALL:
     {
+        _state  = ClientConnection::INCOMINGCALL;
         // callacept / denied
         QString name;
         in >> name;
         emit callIn(name);
         break;
     }
+    case ServerConnectionTyps::CALLESTABLISHED:
+    {
+        _state  = ClientConnection::CALLING;
+        emit callEstablished();
+        break;
+    }
+    case ServerConnectionTyps::AUDIODATA:
+    {
+        QByteArray data;
+        in >> data;
+
+        emit receivedSoundData(data);
+        break;
+    }
     default:
-        //emit message(tr("Undefined connection typ"), ServerMessages::WARNING);
+        emit message(tr("Undefined connection typ"), ServerMessages::WARNING);
         return;
     }
 
