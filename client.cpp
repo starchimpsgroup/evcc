@@ -71,7 +71,7 @@ Client::~Client()
 void Client::on_call_clicked()
 {
     if(_connection->state() == ClientConnection::IDLE)
-    {
+    {qDebug("call");
         if(ui->userList->currentItem())
             _connection->call(ui->userList->currentItem()->text());
     }

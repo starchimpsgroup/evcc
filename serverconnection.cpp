@@ -17,8 +17,6 @@ ServerConnection::ServerConnection(quint16 port, QHostAddress host, QObject* par
     _serverStatusTyp = ServerMessages::TEXT;
 
     QCA::init();
-
-    //connect( this, SIGNAL(newConnection()), this, SLOT(send()) );
 };
 
 User * ServerConnection::getUserByName(QString name)
@@ -79,7 +77,7 @@ void ServerConnection::usernames()
             {
                 i.next();
 
-                out << i.value()->name() << i.value()->publicKey().toPEM();
+                out << i.value()->name() << i.value()->publicKey().toDER();
                 //qDebug(qPrintable("user: " + i.value()->name() + " " + i.value()->publicKey()));
             }
 
@@ -130,7 +128,7 @@ void ServerConnection::socketReadyRead()
             {
                 i.next();
 
-                out << i.value()->name() << i.value()->publicKey().toPEM();
+                out << i.value()->name() << i.value()->publicKey().toDER();
             }
         }
         u->send();
@@ -138,7 +136,8 @@ void ServerConnection::socketReadyRead()
     }
     case ServerConnectionTyps::USERNAME:
     {
-        QString name, key;
+        QString name;
+        QByteArray key;
         in >> name >> key;
 
         if(isNameExistent(name))
@@ -218,9 +217,29 @@ void ServerConnection::socketReadyRead()
 
             *u->partner()->outputDataStream() << connectionTyp(ServerConnectionTyps::AUDIODATA) << data;
             u->partner()->send();
-qDebug("in");
+            qDebug("in");
             out << connectionTyp(ServerConnectionTyps::AUDIODATATRANSFERRED);
             u->send();
+        }
+        else
+        {
+            _users.key(u->partner())->readAll();
+            u->partner()->blockSize() = 0;
+
+            _users.key(u)->readAll();
+            u->blockSize() = 0;
+        }
+        break;
+    }
+    case ServerConnectionTyps::AUDIODATASIZE:
+    {
+        if(u->isCalling())
+        {
+            qint32 size;
+            in >> size;
+
+            *u->partner()->outputDataStream() << connectionTyp(ServerConnectionTyps::AUDIODATASIZE) << size;
+            u->partner()->send();
         }
         break;
     }
@@ -234,14 +253,14 @@ void ServerConnection::callEnd(User * u)
 {
     if(u->isCalling())
     {
+        u->partner()->endCalling();
+        u->endCalling();
+
         *u->partner()->outputDataStream() << connectionTyp(ServerConnectionTyps::CALLEND);
         u->partner()->send();
 
         *u->outputDataStream() << connectionTyp(ServerConnectionTyps::CALLEND);
         u->send();
-
-        u->partner()->endCalling();
-        u->endCalling();
     }
 }
 

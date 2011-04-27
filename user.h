@@ -11,7 +11,7 @@ public:
     ~User();
     QDataStream * outputDataStream(){ return _outputDataStream; }
     void send();
-    void setData(QString name, QString key){ _name = name; setPublicKey(key); }
+    void setData(QString name, QByteArray key){ _name = name; setPublicKey(key); }
 
     QString name()            { return _name; }
     void setName(QString name){ _name = name; }
@@ -20,7 +20,7 @@ public:
     void setPrivateKey(QCA::PrivateKey key){ _privateKey = key;  }
 
     QCA::PublicKey publicKey()            { return _publicKey; }
-    void setPublicKey(QString key);
+    void setPublicKey(QByteArray &key);
     void setPublicKey(QCA::PublicKey key) { _publicKey = key;  }
 
     bool isCalling(){ return _calling; }
@@ -31,7 +31,7 @@ public:
 
     quint32 &blockSize(){ return _blockSize; }
 
-    static QCA::PublicKey publicKeyFromString(QString key);
+    static QCA::PublicKey publicKeyFromByteArray(QByteArray &key);
 
 private:
     void newStream();

@@ -35,9 +35,12 @@ private:
     QString      _server;
     quint16      _port;
 
-    User                  * _user;
-    QHash<QString, QString> _users; // name, key
-    QString                 _userCalling;
+    User                     * _user;
+    QHash<QString, QByteArray> _users; // name, key
+    QString                    _userCalling;
+
+    qint32                     _audioDataSize;
+    QByteArray                 _audioDataPacket;
 
     ClientConnection::ConnectionState _state;
 

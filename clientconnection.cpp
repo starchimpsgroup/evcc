@@ -19,6 +19,9 @@ ClientConnection::ClientConnection(QString server, quint16 port, QString userNam
     QObject::connect(_socket, SIGNAL(error(QAbstractSocket::SocketError)),
                         this, SLOT(displayError(QAbstractSocket::SocketError)));
 
+    _audioDataSize = 0;
+    _audioDataPacket.clear();
+
     QCA::init();
 }
 
@@ -55,17 +58,37 @@ void ClientConnection::callAccept()
 void ClientConnection::sendAudioData(QByteArray audioData)
 {
     audioData = audioData.right(audioData.size()-44);
+    QByteArray send;
 
-    qDebug(qPrintable(_users.value(_userCalling)));
+    //qDebug(qPrintable("KeyLen: " + QString::number(_users[_userCalling].size()))); // ###
 
-    QCA::SecureArray result = User::publicKeyFromString(_users.value(_userCalling)).encrypt(audioData, QCA::EME_PKCS1_OAEP);
-    if(result.isEmpty()) {
-        emit message(tr("Error encrypting"), ServerMessages::ERROR);
-        return;
-    }
-
-    *_user->outputDataStream() << connectionTyp(ServerConnectionTyps::AUDIODATA) << result.toByteArray();
+    *_user->outputDataStream() << connectionTyp(ServerConnectionTyps::AUDIODATASIZE) << (qint32)(audioData.size());
     _user->send();
+
+    while(!audioData.isEmpty())
+    {
+        if(audioData.size() > 86)
+        {
+            send = audioData.left(86);
+            audioData.remove(0, 86);
+        }
+        else
+        {
+            send = audioData;
+            audioData.clear();
+        }
+
+        QCA::SecureArray result = User::publicKeyFromByteArray(_users[_userCalling]).encrypt(send, QCA::EME_PKCS1_OAEP);
+        if(result.isEmpty()) {
+            emit message(tr("Error encrypting"), ServerMessages::ERROR);
+            return;
+        }
+
+        qDebug(qPrintable("audioDataEncryptLen: " + QString::number(result.toByteArray().size()))); // ###
+
+        *_user->outputDataStream() << connectionTyp(ServerConnectionTyps::AUDIODATA) << result.toByteArray();
+        _user->send();
+    }
 }
 
 void ClientConnection::read()
@@ -110,11 +133,11 @@ void ClientConnection::read()
             _user->setPublicKey(_user->privateKey().toPublicKey());
 
             if(!_user->publicKey().canEncrypt()) {
-                emit message(tr("Error: this kind of key cannot encrypt"), ServerMessages::ERROR);
+                emit message(tr("This kind of key cannot encrypt"), ServerMessages::ERROR);
                 return;
             }
 
-            out << connectionTyp(ServerConnectionTyps::USERNAME) << _user->name() << _user->publicKey().toPEM();
+            out << connectionTyp(ServerConnectionTyps::USERNAME) << _user->name() << _user->publicKey().toDER();
             _user->send();
         }
         break;
@@ -134,7 +157,8 @@ void ClientConnection::read()
     case ServerConnectionTyps::USERNAMES:
     {
         _users.clear();
-        QString name, key;
+        QString name;
+        QByteArray key;
 
         quint32 len;
         in >> len;
@@ -153,38 +177,39 @@ void ClientConnection::read()
     }
     case ServerConnectionTyps::CALLEND:
     {
-        _state  = ClientConnection::IDLE;
         // if partner/server terminates
         emit callTerminated();
+        _state  = ClientConnection::IDLE;
         break;
     }
     case ServerConnectionTyps::CALLACCEPTED:
     {
-        _state  = ClientConnection::CALLING;
         // wait for calletablished
         emit callOut(_userCalling);
+        _state  = ClientConnection::CALLING;
         break;
     }
     case ServerConnectionTyps::CALLDENIED:
     {
-        _state  = ClientConnection::IDLE;
         // if partner is calling
         emit callDenied(_userCalling);
+        _state  = ClientConnection::IDLE;
         break;
     }
     case ServerConnectionTyps::CALL:
     {
-        _state  = ClientConnection::INCOMINGCALL;
         // callacept / denied
         QString name;
         in >> name;
+        _userCalling = name;
         emit callIn(name);
+        _state  = ClientConnection::INCOMINGCALL;
         break;
     }
     case ServerConnectionTyps::CALLESTABLISHED:
     {
-        _state  = ClientConnection::CALLING;
         emit callEstablished();
+        _state  = ClientConnection::CALLING;
         break;
     }
     case ServerConnectionTyps::AUDIODATA:
@@ -192,12 +217,35 @@ void ClientConnection::read()
         QByteArray data;
         in >> data;
 
-        emit receivedSoundData(data);
+        QCA::SecureArray decrypt;
+        if(!_user->privateKey().decrypt(data, &decrypt, QCA::EME_PKCS1_OAEP))
+        {
+            emit message(tr("Error decrypting"), ServerMessages::ERROR);
+            return;
+        }
+
+        qDebug(qPrintable("audioDataDecryptLen: " + QString::number(decrypt.toByteArray().size()))); // ###
+
+        if(_audioDataSize != _audioDataPacket.size())
+        {
+            _audioDataPacket.append(decrypt.toByteArray());
+        }
+        else
+        {
+            emit receivedSoundData(_audioDataPacket);
+            _audioDataSize = 0;
+            _audioDataPacket.clear();
+        }
         break;
     }
     case ServerConnectionTyps::AUDIODATATRANSFERRED:
     {
         emit dataTransferred();
+        break;
+    }
+    case ServerConnectionTyps::AUDIODATASIZE:
+    {
+        in >> _audioDataSize;
         break;
     }
     default:

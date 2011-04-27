@@ -31,16 +31,18 @@ void User::send()
     newStream();
 }
 
-void User::setPublicKey(QString key)
+void User::setPublicKey(QByteArray &key)
 {
-    _publicKey = User::publicKeyFromString(key);
+    _publicKey = User::publicKeyFromByteArray(key);
 }
 
-QCA::PublicKey User::publicKeyFromString(QString key)
+QCA::PublicKey User::publicKeyFromByteArray(QByteArray &key)
 {
+    //qDebug(qPrintable("KeyLen: " + QString::number(key.size()))); // ###
+
     QCA::ConvertResult conversionResult;
-    QCA::PublicKey publicKey = QCA::PublicKey::fromPEM(key, &conversionResult);
-    if (! QCA::ConvertGood == conversionResult)
+    QCA::PublicKey publicKey = QCA::PublicKey::fromDER(key, &conversionResult);
+    if (QCA::ConvertGood != conversionResult)
     {
         qDebug("Public key read failed");
     }

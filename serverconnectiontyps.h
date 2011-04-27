@@ -20,7 +20,8 @@ public:
         CALLEND,
         CALLESTABLISHED,
         AUDIODATA,
-        AUDIODATATRANSFERRED
+        AUDIODATATRANSFERRED,
+        AUDIODATASIZE
     }
     ConnectionTyp;
 
