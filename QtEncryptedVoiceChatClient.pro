@@ -5,10 +5,10 @@
 #-------------------------------------------------
 
 QT       += core gui multimedia network
+CONFIG   += crypto
 
-TARGET = QtEncryptedVoiceChatClient
+TARGET   = QtEncryptedVoiceChatClient
 TEMPLATE = app
-
 
 SOURCES += main.cpp\
            mainwindow.cpp \
@@ -18,14 +18,14 @@ SOURCES += main.cpp\
            client.cpp \
            server.cpp \
            choice.cpp \
-    servermessages.cpp \
-    login.cpp \
-    serverconnection.cpp \
-    clientconnection.cpp \
-    user.cpp \
-    serverconnectiontyps.cpp \
-    playfile.cpp \
-    loadsplash.cpp
+           servermessages.cpp \
+           login.cpp \
+           serverconnection.cpp \
+           clientconnection.cpp \
+           user.cpp \
+           serverconnectiontyps.cpp \
+           playfile.cpp \
+           loadsplash.cpp
 
 HEADERS  += mainwindow.h \
             audioinput.h \
@@ -34,20 +34,20 @@ HEADERS  += mainwindow.h \
             client.h \
             server.h \
             choice.h \
-    servermessages.h \
-    login.h \
-    serverconnection.h \
-    clientconnection.h \
-    user.h \
-    serverconnectiontyps.h \
-    playfile.h \
-    loadsplash.h
+            servermessages.h \
+            login.h \
+            serverconnection.h \
+            clientconnection.h \
+            user.h \
+            serverconnectiontyps.h \
+            playfile.h \
+            loadsplash.h
 
 FORMS    += mainwindow.ui \
             client.ui \
             server.ui \
             choice.ui \
-    login.ui
+            login.ui
 
 OTHER_FILES += README.markdown
 

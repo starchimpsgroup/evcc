@@ -30,3 +30,20 @@ void User::send()
     _byteArray.clear();
     newStream();
 }
+
+void User::setPublicKey(QString key)
+{
+    _publicKey = User::publicKeyFromString(key);
+}
+
+QCA::PublicKey User::publicKeyFromString(QString key)
+{
+    QCA::ConvertResult conversionResult;
+    QCA::PublicKey publicKey = QCA::PublicKey::fromPEM(key, &conversionResult);
+    if (! QCA::ConvertGood == conversionResult)
+    {
+        qDebug("Public key read failed");
+    }
+
+    return publicKey;
+}

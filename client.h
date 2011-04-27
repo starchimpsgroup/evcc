@@ -14,10 +14,12 @@ public:
     OutputDataThread(ClientConnection * connection, QList<QByteArray> * byteList);
 
     void run();
-    void stop() { _exitThread = true; }
+    void stop()    { _exitThread  = true; }
+    void sendData(){ _sendData++; }
 
 private:
     bool                _exitThread;
+    int                 _sendData;
     QList<QByteArray> * _byteList;
     ClientConnection  * _connection;
 };
@@ -69,6 +71,7 @@ private slots:
     void callEstablished();
     void callTerminated();
     void receivedSoundData(QByteArray);
+    void dataTransferred();
 
 signals:
     void serverError();

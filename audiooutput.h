@@ -33,6 +33,7 @@ public:
     void stop();
 
     QDataStream * stream(){ return _stream; }
+    QByteArray  * byteArray(){ return _byteArray; }
 
 private:
     void init();

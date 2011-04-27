@@ -19,7 +19,8 @@ public:
         CALLDENIED,
         CALLEND,
         CALLESTABLISHED,
-        AUDIODATA
+        AUDIODATA,
+        AUDIODATATRANSFERRED
     }
     ConnectionTyp;
 

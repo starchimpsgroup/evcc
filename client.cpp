@@ -36,6 +36,7 @@ Client::Client(QString server, quint16 port, QString userName, QWidget *parent) 
     QObject::connect(_connection, SIGNAL(callTerminated()),        this,           SLOT(callTerminated()));
     QObject::connect(_connection, SIGNAL(callEstablished()),       this->parent(), SLOT(callEstablished()));
     QObject::connect(_connection, SIGNAL(receivedSoundData(QByteArray)), this,     SLOT(receivedSoundData(QByteArray)));
+    QObject::connect(_connection, SIGNAL(dataTransferred()),       this,           SLOT(dataTransferred()));
 
     // Set up the format, eg.
     _format.setFrequency(8000); // 44100 8000
@@ -98,8 +99,12 @@ void Client::callEstablished()
     stopAudioOutput();
     startAudioOutput();
 
+    _audioInputList->clear();
+
     _dataThread = new OutputDataThread(_connection, _audioInputList);
     QObject::connect( _dataThread, SIGNAL( finished() ), this, SLOT( finishedThread() ) );
+
+    _dataThread->sendData();
 
     _dataThread->start();
 }
@@ -107,6 +112,11 @@ void Client::callEstablished()
 void Client::receivedSoundData(QByteArray data)
 {
     _audioOutputList->append(data);
+}
+
+void Client::dataTransferred()
+{
+    _dataThread->sendData();
 }
 
 void Client::callTerminated()
@@ -232,8 +242,9 @@ void Client::finishedThread()
 OutputDataThread::OutputDataThread(ClientConnection * connection, QList<QByteArray> * byteList)
 {
     _byteList   = byteList;
-    _exitThread = false;
     _connection = connection;
+    _exitThread = false;
+    _sendData   = 0;
 }
 
 void OutputDataThread::run()
@@ -244,8 +255,9 @@ void OutputDataThread::run()
     while(!_exitThread)
     {
         mutex.lock();
-        if(!_byteList->isEmpty())
+        if(_sendData > 0 && !_byteList->isEmpty())
         {
+            _sendData--;
             _connection->sendAudioData(_byteList->takeFirst());
         }
         mutex.unlock();

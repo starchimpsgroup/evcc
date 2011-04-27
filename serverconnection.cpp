@@ -16,6 +16,8 @@ ServerConnection::ServerConnection(quint16 port, QHostAddress host, QObject* par
     _serverStatus    = tr("Server started.");
     _serverStatusTyp = ServerMessages::TEXT;
 
+    QCA::init();
+
     //connect( this, SIGNAL(newConnection()), this, SLOT(send()) );
 };
 
@@ -77,7 +79,7 @@ void ServerConnection::usernames()
             {
                 i.next();
 
-                out << i.value()->name() << i.value()->publicKey();
+                out << i.value()->name() << i.value()->publicKey().toPEM();
                 //qDebug(qPrintable("user: " + i.value()->name() + " " + i.value()->publicKey()));
             }
 
@@ -95,11 +97,14 @@ void ServerConnection::socketReadyRead()
     QDataStream &out = *u->outputDataStream();
     in.setVersion(QDataStream::Qt_4_0);
 
+    qDebug(qPrintable("bytesAvailable: " + QString::number(socket->bytesAvailable())));
+
     if (u->blockSize() == 0) {
         if (socket->bytesAvailable() < (int)sizeof(qint32))
             return;
 
         in >> u->blockSize();
+        qDebug(qPrintable("blockSize: " + QString::number(u->blockSize())));
     }
 
     if (socket->bytesAvailable() < u->blockSize())
@@ -109,6 +114,8 @@ void ServerConnection::socketReadyRead()
 
     qint32 typ;
     in >> typ;
+
+    qDebug(qPrintable("typ: " + QString::number(typ)));
 
     switch((ServerConnectionTyps::ConnectionTyp)typ)
     {
@@ -123,7 +130,7 @@ void ServerConnection::socketReadyRead()
             {
                 i.next();
 
-                out << i.value()->name() << i.value()->publicKey();
+                out << i.value()->name() << i.value()->publicKey().toPEM();
             }
         }
         u->send();
@@ -196,7 +203,7 @@ void ServerConnection::socketReadyRead()
             *u->partner()->outputDataStream() << connectionTyp(ServerConnectionTyps::CALLESTABLISHED);
             u->partner()->send();
 
-            *u->outputDataStream() << connectionTyp(ServerConnectionTyps::CALLESTABLISHED);
+            out << connectionTyp(ServerConnectionTyps::CALLESTABLISHED);
             u->send();
         }
 
@@ -211,6 +218,9 @@ void ServerConnection::socketReadyRead()
 
             *u->partner()->outputDataStream() << connectionTyp(ServerConnectionTyps::AUDIODATA) << data;
             u->partner()->send();
+qDebug("in");
+            out << connectionTyp(ServerConnectionTyps::AUDIODATATRANSFERRED);
+            u->send();
         }
         break;
     }

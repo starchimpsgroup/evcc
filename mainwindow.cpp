@@ -38,6 +38,12 @@ void MainWindow::serverError()
 {
     stopSound();
     setChoice();
+
+    QObject * sender = QObject::sender();
+    sender->disconnect();
+
+    delete sender;
+
     qDebug("ServerError");
 }
 

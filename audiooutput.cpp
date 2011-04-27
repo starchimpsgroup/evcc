@@ -26,7 +26,7 @@ void AudioOutput::start()
 }
 
 void AudioOutput::init()
-{
+{qDebug("init");
     initOutput();
     _stream = new QDataStream(_byteArray, QIODevice::ReadOnly /*| QIODevice::Unbuffered*/);
 
@@ -56,14 +56,16 @@ void AudioOutput::finishedAudio(QAudio::State state)
         AudioOutput * sender = (AudioOutput *)QObject::sender();
         sender->disconnect();
 
-        QDataStream * stream = sender->stream();
+        QDataStream * stream    = sender->stream();
+        QByteArray  * byteArray = sender->byteArray();
 
         delete sender;
         delete stream;
+        delete byteArray;
 
         emit finished();
 
-        //qDebug("finishedAudio");
+        qDebug("finishedAudio");
     }
 }
 
@@ -97,7 +99,7 @@ void AudioOutputDataThread::run()
     QMutex mutex;
     while(!_exitThread)
     {
-        if(_audioOutput->error() != 0)
+        if(_audioOutput->error() != 0 && !_byteList->isEmpty())
         {
             _error = true;
             break;

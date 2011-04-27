@@ -18,6 +18,8 @@ ClientConnection::ClientConnection(QString server, quint16 port, QString userNam
     QObject::connect(_socket, SIGNAL(disconnected()), this, SLOT(disconnected()));
     QObject::connect(_socket, SIGNAL(error(QAbstractSocket::SocketError)),
                         this, SLOT(displayError(QAbstractSocket::SocketError)));
+
+    QCA::init();
 }
 
 ClientConnection::~ClientConnection()
@@ -52,8 +54,17 @@ void ClientConnection::callAccept()
 
 void ClientConnection::sendAudioData(QByteArray audioData)
 {
-    //audioData = audioData.right(audioData.size()-44);
-    *_user->outputDataStream() << connectionTyp(ServerConnectionTyps::AUDIODATA) << audioData;
+    audioData = audioData.right(audioData.size()-44);
+
+    qDebug(qPrintable(_users.value(_userCalling)));
+
+    QCA::SecureArray result = User::publicKeyFromString(_users.value(_userCalling)).encrypt(audioData, QCA::EME_PKCS1_OAEP);
+    if(result.isEmpty()) {
+        emit message(tr("Error encrypting"), ServerMessages::ERROR);
+        return;
+    }
+
+    *_user->outputDataStream() << connectionTyp(ServerConnectionTyps::AUDIODATA) << result.toByteArray();
     _user->send();
 }
 
@@ -82,8 +93,30 @@ void ClientConnection::read()
     {
     case ServerConnectionTyps::CONNECTIONACCEPTED:
     {
-        out << connectionTyp(ServerConnectionTyps::USERNAME) << _user->name() << _user->publicKey();
-        _user->send();
+        if(!QCA::isSupported("pkey") || !QCA::PKey::supportedIOTypes().contains(QCA::PKey::RSA))
+        {
+            emit message(tr("RSA is not supported!"), ServerMessages::ERROR);
+            return;
+        }
+        else
+        {
+            _user->setPrivateKey(QCA::KeyGenerator().createRSA(1024));
+            if(_user->privateKey().isNull())
+            {
+                emit message(tr("Failed to make private RSA key"), ServerMessages::ERROR);
+                return;
+            }
+
+            _user->setPublicKey(_user->privateKey().toPublicKey());
+
+            if(!_user->publicKey().canEncrypt()) {
+                emit message(tr("Error: this kind of key cannot encrypt"), ServerMessages::ERROR);
+                return;
+            }
+
+            out << connectionTyp(ServerConnectionTyps::USERNAME) << _user->name() << _user->publicKey().toPEM();
+            _user->send();
+        }
         break;
     }
     case ServerConnectionTyps::USERNAMEACCEPTED:
@@ -95,6 +128,7 @@ void ClientConnection::read()
     {
         //_error = true;
         emit message(tr("User with this name is already logged in"), ServerMessages::ERROR);
+        return;
         break;
     }
     case ServerConnectionTyps::USERNAMES:
@@ -159,6 +193,11 @@ void ClientConnection::read()
         in >> data;
 
         emit receivedSoundData(data);
+        break;
+    }
+    case ServerConnectionTyps::AUDIODATATRANSFERRED:
+    {
+        emit dataTransferred();
         break;
     }
     default:

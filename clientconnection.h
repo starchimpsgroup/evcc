@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QTcpSocket>
+#include <QtCrypto>
 #include "servermessages.h"
 #include "serverconnectiontyps.h"
 #include "user.h"
@@ -53,6 +54,7 @@ signals:
     void callTerminated();
     void callEstablished();
     void receivedSoundData(QByteArray);
+    void dataTransferred();
 
 public slots:
     void read();
