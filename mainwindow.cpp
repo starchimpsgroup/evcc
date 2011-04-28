@@ -5,22 +5,19 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    _playRingPH (":/sounds/ringph.wav"),
+    _playRing   (":/sounds/ring.wav"),
+    _playOffHook(":/sounds/offhook.wav", false)
+
 {
     ui->setupUi(this);
-
-    _playRingPH  = new PlayFile(":/sounds/ringph.wav");
-    _playRing    = new PlayFile(":/sounds/ring.wav");
-    _playOffHook = new PlayFile(":/sounds/offhook.wav", false);
 
     setChoice();
 }
 
 MainWindow::~MainWindow()
 {
-    delete _playRing;
-    delete _playRingPH;
-    delete _playOffHook;
     delete ui;
 }
 
@@ -54,27 +51,27 @@ void MainWindow::connectionEstablished()
 
 void MainWindow::stopSound()
 {
-    _playRing->stop();
-    _playRingPH->stop();
-    _playOffHook->stop();
+    _playRing.stop();
+    _playRingPH.stop();
+    _playOffHook.stop();
 }
 
 void MainWindow::callOut(QString name)
 {
     ui->statusBar->showMessage("Calling " + name + "...");
-    _playRingPH->play();
+    _playRingPH.play();
 }
 
 void MainWindow::callIn(QString name)
 {
     ui->statusBar->showMessage("Calling " + name + "...");
-    _playRing->play();
+    _playRing.play();
 }
 
 void MainWindow::callDenied(QString name)
 {
     ui->statusBar->showMessage(name + " is calling...");
-    _playOffHook->play();
+    _playOffHook.play();
 }
 
 void MainWindow::callTerminated()

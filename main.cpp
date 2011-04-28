@@ -15,8 +15,10 @@ int main(int argc, char *argv[])
     splash.setMask(pixmap0.mask());
     splash.show();
 
-    LoadSplash  * loadSplash = new LoadSplash( &splash, 70 );
-    loadSplash->start();
+    app.processEvents();
+
+    LoadSplash loadSplash( &splash, 65 );
+    loadSplash.start();
 
     MainWindow w;
     w.show();

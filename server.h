@@ -9,20 +9,37 @@ namespace Ui {
     class Server;
 }
 
+//! The Server class.
+/*!
+    Server to connect clients.
+ */
 class Server : public QWidget
 {
     Q_OBJECT
 
 public:
+    //! Constructor Server class.
+    /*!
+        Get serveradress and create server
+        \param parent Parent widget
+     */
     explicit Server(QWidget *parent = 0);
+
+    //! Destructor Server class.
     ~Server();
 
 private:
-    Ui::Server        * ui;
-    ServerConnection  * _tcpServer;
-    QString             _serverLog;
+    Ui::Server        * ui;         //!< The UI
+    ServerConnection  * _tcpServer; //!< Tcp server \see ServerConnection
+    QString             _serverLog; //!< Server log
 
 public slots:
+    //! Add message.
+    /*!
+        Adds text messages, with specified typ, to the server log
+        \param text Message of text
+        \param typ Typ of message
+     */
     void addMessage(QString text, ServerMessages::MessageTyp typ);
 };
 

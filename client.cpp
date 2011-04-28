@@ -38,14 +38,11 @@ Client::Client(QString server, quint16 port, QString userName, QWidget *parent) 
     QObject::connect(_connection, SIGNAL(receivedSoundData(QByteArray)), this,     SLOT(receivedSoundData(QByteArray)));
     QObject::connect(_connection, SIGNAL(dataTransferred()),       this,           SLOT(dataTransferred()));
 
-    // Set up the format, eg.
-    _format.setFrequency(8000); // 44100 8000
+    _format.setFrequency(8000);
     _format.setChannels(1);
-    //_format.setSampleSize(8); // 16
     _format.setSampleSize(16);
     _format.setCodec("audio/pcm");
     _format.setByteOrder(QAudioFormat::LittleEndian);
-    //_format.setSampleType(QAudioFormat::UnSignedInt); // SignedInt
     _format.setSampleType(QAudioFormat::SignedInt);
 
     _audioInputList  = new QList<QByteArray>();
@@ -71,7 +68,7 @@ Client::~Client()
 void Client::on_call_clicked()
 {
     if(_connection->state() == ClientConnection::IDLE)
-    {qDebug("call");
+    {
         if(ui->userList->currentItem())
             _connection->call(ui->userList->currentItem()->text());
     }
@@ -202,7 +199,7 @@ void Client::showMessage(QString text, ServerMessages::MessageTyp typ)
                                  text);
         break;
     }
-    case ServerMessages::ERROR:
+    case ServerMessages::ERRORMESSAGE:
     {
         callTerminated();
         QMessageBox::critical(this, tr("Error"),

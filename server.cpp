@@ -18,7 +18,10 @@ Server::Server(QWidget *parent) :
 
     QString ipAddress;
     QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
-    // use the first non-localhost IPv4 address
+
+    /*!
+        Use the first non-localhost IPv4 address\n
+     */
     for (int i = 0; i < ipAddressesList.size(); ++i) {
         if (ipAddressesList.at(i) != QHostAddress::LocalHost &&
             ipAddressesList.at(i).toIPv4Address()) {
@@ -27,7 +30,9 @@ Server::Server(QWidget *parent) :
         }
     }
 
-    // if we did not find one, use IPv4 localhost
+    /*!
+        If we did not find one, use IPv4 localhost\n
+     */
     if (ipAddress.isEmpty())
         ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
 
@@ -49,13 +54,17 @@ Server::~Server()
 
 void Server::addMessage(QString text, ServerMessages::MessageTyp typ)
 {
-    if(typ == ServerMessages::ERROR)
+    if(typ == ServerMessages::ERRORMESSAGE)
     {
         _serverLog += "<span style=\"color:red;\">" + text + "</span><br />";
     }
     else if(typ == ServerMessages::SEND)
     {
         _serverLog += "<span style=\"color:blue;\">" + text + "</span><br />";
+    }
+    else if(typ == ServerMessages::WARNING)
+    {
+        _serverLog += "<span style=\"color:orange;\">" + text + "</span><br />";
     }
     else if(typ == ServerMessages::TEXT)
     {

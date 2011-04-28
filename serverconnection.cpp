@@ -8,7 +8,7 @@ ServerConnection::ServerConnection(quint16 port, QHostAddress host, QObject* par
     {
         _serverStatus    = tr("Unable to start the server: %1.")
                            .arg(this->errorString());
-        _serverStatusTyp = ServerMessages::ERROR;
+        _serverStatusTyp = ServerMessages::ERRORMESSAGE;
 
         return;
     }
@@ -70,7 +70,6 @@ void ServerConnection::usernames()
             u.next();
             QDataStream &out = *u.value()->outputDataStream();
             out << connectionTyp(ServerConnectionTyps::USERNAMES) << (quint32)_users.size();
-            //qDebug(qPrintable("to: " + u.value()->name()));
 
             QHashIterator<QTcpSocket*, User*> i(_users);
             while (i.hasNext())
@@ -78,7 +77,6 @@ void ServerConnection::usernames()
                 i.next();
 
                 out << i.value()->name() << i.value()->publicKey().toDER();
-                //qDebug(qPrintable("user: " + i.value()->name() + " " + i.value()->publicKey()));
             }
 
             u.value()->send();
@@ -95,14 +93,14 @@ void ServerConnection::socketReadyRead()
     QDataStream &out = *u->outputDataStream();
     in.setVersion(QDataStream::Qt_4_0);
 
-    qDebug(qPrintable("bytesAvailable: " + QString::number(socket->bytesAvailable())));
+    qDebug("bytesAvailable: %li", (long)socket->bytesAvailable());
 
     if (u->blockSize() == 0) {
         if (socket->bytesAvailable() < (int)sizeof(qint32))
             return;
 
         in >> u->blockSize();
-        qDebug(qPrintable("blockSize: " + QString::number(u->blockSize())));
+        qDebug("blockSize: %i", u->blockSize());
     }
 
     if (socket->bytesAvailable() < u->blockSize())
@@ -113,7 +111,7 @@ void ServerConnection::socketReadyRead()
     qint32 typ;
     in >> typ;
 
-    qDebug(qPrintable("typ: " + QString::number(typ)));
+    qDebug("typ: %i", typ);
 
     switch((ServerConnectionTyps::ConnectionTyp)typ)
     {
@@ -144,7 +142,6 @@ void ServerConnection::socketReadyRead()
         {
             out << connectionTyp(ServerConnectionTyps::USERNAMEDENIED);
             u->send();
-            // socketDisconnected
         }
         else
         {
@@ -190,11 +187,6 @@ void ServerConnection::socketReadyRead()
         callEnd(u);
         break;
     }
-        /*case ServerConnectionTyps::CALLDENIED:
-        {
-            //callcancanceled
-            break;
-        }*/
     case ServerConnectionTyps::CALLACCEPTED:
     {
         if(u->isCalling())
@@ -244,7 +236,7 @@ void ServerConnection::socketReadyRead()
         break;
     }
     default:
-        emit message(tr("Undefined connection typ"), ServerMessages::ERROR);
+        emit message(tr("Undefined connection typ"), ServerMessages::WARNING);
         return;
     }
 }
@@ -277,5 +269,4 @@ void ServerConnection::socketDisconnected()
     _usernames.removeOne(u->name());
     usernames();
     delete u;
-    //delete socket;
 }

@@ -33,7 +33,7 @@ ClientConnection::~ClientConnection()
 void ClientConnection::disconnected()
 {
     _socket->blockSignals(true);
-    emit message(tr("Disconnected from server"), ServerMessages::ERROR);
+    emit message(tr("Disconnected from server"), ServerMessages::ERRORMESSAGE);
 }
 
 void ClientConnection::call(QString name)
@@ -80,11 +80,11 @@ void ClientConnection::sendAudioData(QByteArray audioData)
 
         QCA::SecureArray result = User::publicKeyFromByteArray(_users[_userCalling]).encrypt(send, QCA::EME_PKCS1_OAEP);
         if(result.isEmpty()) {
-            emit message(tr("Error encrypting"), ServerMessages::ERROR);
+            emit message(tr("Error encrypting"), ServerMessages::ERRORMESSAGE);
             return;
         }
 
-        qDebug(qPrintable("audioDataEncryptLen: " + QString::number(result.toByteArray().size()))); // ###
+        qDebug("audioDataEncryptLen: %i", result.toByteArray().size()); // ###
 
         *_user->outputDataStream() << connectionTyp(ServerConnectionTyps::AUDIODATA) << result.toByteArray();
         _user->send();
@@ -118,7 +118,7 @@ void ClientConnection::read()
     {
         if(!QCA::isSupported("pkey") || !QCA::PKey::supportedIOTypes().contains(QCA::PKey::RSA))
         {
-            emit message(tr("RSA is not supported!"), ServerMessages::ERROR);
+            emit message(tr("RSA is not supported!"), ServerMessages::ERRORMESSAGE);
             return;
         }
         else
@@ -126,14 +126,14 @@ void ClientConnection::read()
             _user->setPrivateKey(QCA::KeyGenerator().createRSA(1024));
             if(_user->privateKey().isNull())
             {
-                emit message(tr("Failed to make private RSA key"), ServerMessages::ERROR);
+                emit message(tr("Failed to make private RSA key"), ServerMessages::ERRORMESSAGE);
                 return;
             }
 
             _user->setPublicKey(_user->privateKey().toPublicKey());
 
             if(!_user->publicKey().canEncrypt()) {
-                emit message(tr("This kind of key cannot encrypt"), ServerMessages::ERROR);
+                emit message(tr("This kind of key cannot encrypt"), ServerMessages::ERRORMESSAGE);
                 return;
             }
 
@@ -150,7 +150,7 @@ void ClientConnection::read()
     case ServerConnectionTyps::USERNAMEDENIED:
     {
         //_error = true;
-        emit message(tr("User with this name is already logged in"), ServerMessages::ERROR);
+        emit message(tr("User with this name is already logged in"), ServerMessages::ERRORMESSAGE);
         return;
         break;
     }
@@ -220,11 +220,11 @@ void ClientConnection::read()
         QCA::SecureArray decrypt;
         if(!_user->privateKey().decrypt(data, &decrypt, QCA::EME_PKCS1_OAEP))
         {
-            emit message(tr("Error decrypting"), ServerMessages::ERROR);
+            emit message(tr("Error decrypting"), ServerMessages::ERRORMESSAGE);
             return;
         }
 
-        qDebug(qPrintable("audioDataDecryptLen: " + QString::number(decrypt.toByteArray().size()))); // ###
+        qDebug("audioDataDecryptLen: %i", decrypt.toByteArray().size()); // ###
 
         if(_audioDataSize != _audioDataPacket.size())
         {
@@ -269,18 +269,18 @@ void ClientConnection::displayError(QAbstractSocket::SocketError socketError)
     case QAbstractSocket::HostNotFoundError:
         emit message( tr("The host was not found. "
                          "Please check the host name and port settings."),
-                     ServerMessages::ERROR);
+                     ServerMessages::ERRORMESSAGE);
         break;
     case QAbstractSocket::ConnectionRefusedError:
         emit message( tr("The connection was refused by the peer. "
                          "Make sure the server is running, "
                          "and check that the host name and port "
                          "settings are correct."),
-                     ServerMessages::ERROR);
+                     ServerMessages::ERRORMESSAGE);
         break;
     default:
         emit message( tr("The following error occurred: %1.")
                      .arg(_socket->errorString()),
-                     ServerMessages::ERROR);
+                     ServerMessages::ERRORMESSAGE);
     }
 }

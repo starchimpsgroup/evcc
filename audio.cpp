@@ -24,21 +24,7 @@ void Audio::finishedAudio(QAudio::State state)
         delete sender;
 
         emit finished();
-
-        //qDebug("finishedAudio");
     }
-    /*else if(state == QAudio::ActiveState)
-    {
-        qDebug(qPrintable(typ() + " QAudio::ActiveState"));
-    }
-    else if(state == QAudio::SuspendedState)
-    {
-        qDebug(qPrintable(typ() + " QAudio::SuspendedState"));
-    }
-    else if(state == QAudio::IdleState)
-    {
-        qDebug(qPrintable(typ() + " QAudio::IdleState"));
-    }*/
 }
 
 void Audio::finishedThread()
@@ -47,8 +33,6 @@ void Audio::finishedThread()
     sender->disconnect();
 
     delete sender;
-
-    //qDebug("finishedThread");
 }
 
 void Audio::initInput()
@@ -85,16 +69,7 @@ void Audio::stopOutput()
     }
 }
 
-QString Audio::typ()
+QAudio::Mode Audio::mode()
 {
-    if(_mode == QAudio::AudioInput)
-    {
-        return "Input";
-    }
-    else if(_mode == QAudio::AudioOutput)
-    {
-        return "Output";
-    }
-
-    return QString::number(_mode);
+    return _mode;
 }

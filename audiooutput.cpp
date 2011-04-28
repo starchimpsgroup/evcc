@@ -26,9 +26,9 @@ void AudioOutput::start()
 }
 
 void AudioOutput::init()
-{qDebug("init");
+{
     initOutput();
-    _stream = new QDataStream(_byteArray, QIODevice::ReadOnly /*| QIODevice::Unbuffered*/);
+    _stream = new QDataStream(_byteArray, QIODevice::ReadOnly);
 
     _ioDevice = _stream->device();
 
@@ -80,8 +80,6 @@ void AudioOutput::finishedThread()
     }
 
     delete sender;
-
-    //qDebug("finishedThread");
 }
 
 AudioOutputDataThread::AudioOutputDataThread(QAudioOutput * audioOutput, QIODevice * device, QByteArray * byteArray, QList<QByteArray> * byteList)
