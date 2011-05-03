@@ -25,7 +25,9 @@ SOURCES += main.cpp\
            user.cpp \
            serverconnectiontyps.cpp \
            playfile.cpp \
-           loadsplash.cpp
+           loadsplash.cpp \
+    preferences.cpp \
+    settings.cpp
 
 HEADERS  += mainwindow.h \
             audioinput.h \
@@ -41,13 +43,16 @@ HEADERS  += mainwindow.h \
             user.h \
             serverconnectiontyps.h \
             playfile.h \
-            loadsplash.h
+            loadsplash.h \
+    preferences.h \
+    settings.h
 
 FORMS    += mainwindow.ui \
             client.ui \
             server.ui \
             choice.ui \
-            login.ui
+            login.ui \
+    preferences.ui
 
 OTHER_FILES += README.markdown
 

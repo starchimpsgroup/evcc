@@ -2,12 +2,14 @@
 #include "ui_login.h"
 #include <QMessageBox>
 
-Login::Login(QWidget *parent) :
+Login::Login(QString port, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Login)
 {
     ui->setupUi(this);
     _login = Login::WRONGINPUT;
+
+    ui->port->setText(port);
 }
 
 Login::~Login()

@@ -6,12 +6,18 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    _playRingPH (":/sounds/ringph.wav"),
     _playRing   (":/sounds/ring.wav"),
+    _playRingPH (":/sounds/ringph.wav"),
     _playOffHook(":/sounds/offhook.wav", false)
-
 {
     ui->setupUi(this);
+
+    _preferences = new Preferences(_settings.port(),
+                                   QAudioDeviceInfo::availableDevices(QAudio::AudioInput),
+                                   _settings.inputDevice(),
+                                   QAudioDeviceInfo::availableDevices(QAudio::AudioOutput),
+                                   _settings.outputDevice(),
+                                   this);
 
     setChoice();
 }
@@ -90,7 +96,7 @@ void MainWindow::setPage(Choice::ContentPage page)
 {
     if(page == Choice::CLIENT)
     {
-        Login login;
+        Login login(_preferences->port());
 
         while(login.login() == Login::WRONGINPUT)
         {
@@ -98,7 +104,12 @@ void MainWindow::setPage(Choice::ContentPage page)
 
             if(login.login() == Login::OK)
             {
-                _client = new Client(login.server(), login.port(), login.name(), this);
+                _client = new Client(login.server(),
+                                     login.port(),
+                                     _preferences->selectedInputDevice(),
+                                     _preferences->selectedOutputDevice(),
+                                     login.name(),
+                                     this);
                 QObject::connect(_client, SIGNAL(serverError()), this, SLOT(serverError()));
             }
 
@@ -106,7 +117,16 @@ void MainWindow::setPage(Choice::ContentPage page)
     }
     else if(page == Choice::SERVER)
     {
-        _server = new Server(this);
+        _server = new Server(_preferences->port(), this);
         setCentralWidget(_server);
     }
+}
+
+void MainWindow::on_actionPreferences_triggered()
+{
+    _preferences->exec();
+
+    _settings.setPort(_preferences->port());
+    _settings.setInputDevice(_preferences->selectedInputDevice());
+    _settings.setOutputDevice(_preferences->selectedOutputDevice());
 }

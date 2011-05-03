@@ -22,8 +22,9 @@ public:
     /*!
         Get serveradress and create server
         \param parent Parent widget
+        \param port Server port number
      */
-    explicit Server(QWidget *parent = 0);
+    explicit Server(QString port, QWidget *parent = 0);
 
     //! Destructor Server class.
     ~Server();
@@ -32,6 +33,7 @@ private:
     Ui::Server        * ui;         //!< The UI
     ServerConnection  * _tcpServer; //!< Tcp server \see ServerConnection
     QString             _serverLog; //!< Server log
+    QString             _port;      //!< Server port number
 
 public slots:
     //! Add message.

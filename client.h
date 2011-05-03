@@ -65,10 +65,12 @@ public:
         Initialize connection to the Server, connect singals and slots, set audio format.
         \param server Server name or ip
         \param port Server port
+        \param inputDeviceName Name of audio input device
+        \param outputDeviceName Name of audio output device
         \param userName Client username
         \param parent Parent widget
      */
-    explicit Client(QString server, quint16 port, QString userName, QWidget *parent = 0);
+    explicit Client(QString server, quint16 port, QString inputDeviceName, QString outputDeviceName, QString userName, QWidget *parent = 0);
 
     //! Destructor Client class.
     /*!

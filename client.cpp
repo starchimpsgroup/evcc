@@ -3,7 +3,7 @@
 #include <QMessageBox>
 #include <QMutex>
 
-Client::Client(QString server, quint16 port, QString userName, QWidget *parent) :
+Client::Client(QString server, quint16 port, QString inputDeviceName, QString outputDeviceName, QString userName, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Client)
 {
@@ -48,8 +48,8 @@ Client::Client(QString server, quint16 port, QString userName, QWidget *parent) 
     _audioInputList  = new QList<QByteArray>();
     _audioOutputList = new QList<QByteArray>();
 
-    _audioInput  = new AudioInput ( _format, audioDeviceByName("pulse", QAudio::AudioInput  ), _audioInputList);
-    _audioOutput = new AudioOutput( _format, audioDeviceByName("pulse", QAudio::AudioOutput ), _audioOutputList);
+    _audioInput  = new AudioInput ( _format, audioDeviceByName(inputDeviceName,  QAudio::AudioInput  ), _audioInputList);
+    _audioOutput = new AudioOutput( _format, audioDeviceByName(outputDeviceName, QAudio::AudioOutput ), _audioOutputList);
 }
 
 Client::~Client()

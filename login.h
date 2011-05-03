@@ -19,8 +19,9 @@ public:
     //! Constructor Login class.
     /*!
         \param parent Parent widget
+        \param port Server port number
      */
-    explicit Login(QWidget *parent = 0);
+    explicit Login(QString port, QWidget *parent = 0);
 
     //! Destructor Login class.
     ~Login();

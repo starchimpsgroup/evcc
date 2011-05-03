@@ -6,6 +6,8 @@
 #include "client.h"
 #include "server.h"
 #include "playfile.h"
+#include "preferences.h"
+#include "settings.h"
 
 namespace Ui {
     class MainWindow;
@@ -47,6 +49,9 @@ private:
     PlayFile         _playRing;    //!< Sound, if user is calling someone
     PlayFile         _playRingPH;  //!< Sound, if user were called
     PlayFile         _playOffHook; //!< Sound, if call denied
+
+    Preferences    * _preferences; //!< Preferences window
+    Settings         _settings;    //!< Programm settings
 
 private slots:
     //! Set page.
@@ -123,6 +128,8 @@ private slots:
         \see callOut
      */
     void callEstablished();
+
+    void on_actionPreferences_triggered();
 };
 
 #endif // MAINWINDOW_H

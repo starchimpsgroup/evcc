@@ -3,13 +3,13 @@
 #include <QNetworkInterface>
 #include <QTextEdit>
 
-#define TCP_PORT 60886
-
-Server::Server(QWidget *parent) :
+Server::Server(QString port, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Server)
 {
     ui->setupUi(this);
+
+    _port = port;
 
     ui->textEdit->setStyleSheet("background-color: white;"
                                 "background-image: url(:/logos/serverLogo.png);"
@@ -36,12 +36,12 @@ Server::Server(QWidget *parent) :
     if (ipAddress.isEmpty())
         ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
 
-    addMessage("IP-Address: " + ipAddress + "<br />Port: " + QString::number( TCP_PORT ), ServerMessages::TEXT);
-
-    connect(_tcpServer = new ServerConnection( TCP_PORT ),
+    connect(_tcpServer = new ServerConnection( _port.toInt() ),
             SIGNAL(message(QString,ServerMessages::MessageTyp)),
             this,
             SLOT(addMessage(QString,ServerMessages::MessageTyp)));
+
+    addMessage("IP-Address: " + ipAddress + "<br />Port: " + QString::number( _tcpServer->serverPort() ), ServerMessages::TEXT);
 
     _tcpServer->serverStatus();
 }
