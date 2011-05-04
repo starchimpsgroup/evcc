@@ -85,8 +85,17 @@ private:
     /*!
         Terminates call between two clients
         \param u User who terminates call
+        \see User
      */
     void callEnd(User * u);
+
+    //! Clear.
+    /*!
+        Clear transaction data from user and calling partner
+        \param u User
+        \see User
+     */
+    void clear(User * u);
 
 private slots:
     //! Socket ready read.

@@ -32,7 +32,7 @@ ClientConnection::~ClientConnection()
 
 void ClientConnection::disconnected()
 {
-    _socket->blockSignals(true);
+    _socket->deleteLater();
     emit message(tr("Disconnected from server"), ServerMessages::ERRORMESSAGE);
 }
 
@@ -60,8 +60,6 @@ void ClientConnection::sendAudioData(QByteArray audioData)
     audioData = audioData.right(audioData.size()-44);
     QByteArray send;
 
-    //qDebug(qPrintable("KeyLen: " + QString::number(_users[_userCalling].size()))); // ###
-
     *_user->outputDataStream() << connectionTyp(ServerConnectionTyps::AUDIODATASIZE) << (qint32)(audioData.size());
     _user->send();
 
@@ -83,8 +81,6 @@ void ClientConnection::sendAudioData(QByteArray audioData)
             emit message(tr("Error encrypting"), ServerMessages::ERRORMESSAGE);
             return;
         }
-
-        qDebug("audioDataEncryptLen: %i", result.toByteArray().size()); // ###
 
         *_user->outputDataStream() << connectionTyp(ServerConnectionTyps::AUDIODATA) << result.toByteArray();
         _user->send();
@@ -149,7 +145,6 @@ void ClientConnection::read()
     }
     case ServerConnectionTyps::USERNAMEDENIED:
     {
-        //_error = true;
         emit message(tr("User with this name is already logged in"), ServerMessages::ERRORMESSAGE);
         return;
         break;
@@ -177,28 +172,24 @@ void ClientConnection::read()
     }
     case ServerConnectionTyps::CALLEND:
     {
-        // if partner/server terminates
         emit callTerminated();
         _state  = ClientConnection::IDLE;
         break;
     }
     case ServerConnectionTyps::CALLACCEPTED:
     {
-        // wait for calletablished
         emit callOut(_userCalling);
         _state  = ClientConnection::CALLING;
         break;
     }
     case ServerConnectionTyps::CALLDENIED:
     {
-        // if partner is calling
         emit callDenied(_userCalling);
         _state  = ClientConnection::IDLE;
         break;
     }
     case ServerConnectionTyps::CALL:
     {
-        // callacept / denied
         QString name;
         in >> name;
         _userCalling = name;
@@ -224,18 +215,14 @@ void ClientConnection::read()
             return;
         }
 
-        qDebug("audioDataDecryptLen: %i", decrypt.toByteArray().size()); // ###
+        _audioDataPacket.append(decrypt.toByteArray());
 
-        if(_audioDataSize != _audioDataPacket.size())
-        {
-            _audioDataPacket.append(decrypt.toByteArray());
-        }
-        else
+        if(_audioDataPacket.size() >= _audioDataSize)
         {
             emit receivedSoundData(_audioDataPacket);
-            _audioDataSize = 0;
             _audioDataPacket.clear();
         }
+
         break;
     }
     case ServerConnectionTyps::AUDIODATATRANSFERRED:

@@ -93,14 +93,11 @@ void ServerConnection::socketReadyRead()
     QDataStream &out = *u->outputDataStream();
     in.setVersion(QDataStream::Qt_4_0);
 
-    qDebug("bytesAvailable: %li", (long)socket->bytesAvailable());
-
     if (u->blockSize() == 0) {
         if (socket->bytesAvailable() < (int)sizeof(qint32))
             return;
 
         in >> u->blockSize();
-        qDebug("blockSize: %i", u->blockSize());
     }
 
     if (socket->bytesAvailable() < u->blockSize())
@@ -110,8 +107,6 @@ void ServerConnection::socketReadyRead()
 
     qint32 typ;
     in >> typ;
-
-    qDebug("typ: %i", typ);
 
     switch((ServerConnectionTyps::ConnectionTyp)typ)
     {
@@ -209,17 +204,13 @@ void ServerConnection::socketReadyRead()
 
             *u->partner()->outputDataStream() << connectionTyp(ServerConnectionTyps::AUDIODATA) << data;
             u->partner()->send();
-            qDebug("in");
+
             out << connectionTyp(ServerConnectionTyps::AUDIODATATRANSFERRED);
             u->send();
         }
         else
         {
-            _users.key(u->partner())->readAll();
-            u->partner()->blockSize() = 0;
-
-            _users.key(u)->readAll();
-            u->blockSize() = 0;
+            clear(u);
         }
         break;
     }
@@ -241,6 +232,15 @@ void ServerConnection::socketReadyRead()
     }
 }
 
+void ServerConnection::clear(User * u)
+{
+    _users.key(u->partner())->readAll();
+    u->partner()->blockSize() = 0;
+
+    _users.key(u)->readAll();
+    u->blockSize() = 0;
+}
+
 void ServerConnection::callEnd(User * u)
 {
     if(u->isCalling())
@@ -253,6 +253,8 @@ void ServerConnection::callEnd(User * u)
 
         *u->outputDataStream() << connectionTyp(ServerConnectionTyps::CALLEND);
         u->send();
+
+        clear(u);
     }
 }
 

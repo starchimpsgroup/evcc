@@ -76,7 +76,9 @@ void AudioOutput::finishedThread()
 
     if(sender->error())
     {
+        _devicePos = _ioDevice->pos();
         init();
+        _ioDevice->seek(_devicePos);
     }
 
     delete sender;

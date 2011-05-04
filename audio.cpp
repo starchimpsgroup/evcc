@@ -56,6 +56,7 @@ void Audio::stopInput()
     if(_audioInput != NULL)
     {
         _audioInput->stop();
+        //_audioInput->deleteLater();
         _audioInput = NULL;
     }
 }
@@ -65,6 +66,7 @@ void Audio::stopOutput()
     if(_audioOutput != NULL)
     {
         _audioOutput->stop();
+        //_audioOutput->deleteLater();
         _audioOutput = NULL;
     }
 }

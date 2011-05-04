@@ -45,7 +45,7 @@ void MainWindow::serverError()
     QObject * sender = QObject::sender();
     sender->disconnect();
 
-    delete sender;
+    sender->deleteLater();
 
     qDebug("ServerError");
 }

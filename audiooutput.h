@@ -107,6 +107,7 @@ private:
     QDataStream           * _stream;      //!< Audio data stream
     QIODevice             * _ioDevice;    //!< Audio output device
     QByteArray            * _byteArray;   //!< Audio data array
+    long                    _devicePos;   //!< Position of io device
 
 protected slots:
     //! Called by statechange of audio interface.
