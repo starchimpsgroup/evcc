@@ -1,5 +1,5 @@
-Qt Encrypted Voice Chat Client
-==============================
+Qt Encrypted Voice Chat - Client & Server
+=========================================
 - g++ (Packet Manager)
 - Qt SDK (http://qt.nokia.com/ → >= 4.7.3)
 - QCA (Packet Manager → libqca2)
